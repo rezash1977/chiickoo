@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useUnreadMessagesCount } from '@/hooks/useUnreadMessagesCount';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useCategories } from '@/hooks/useCategories';
+import { NotificationCenter } from '../notifications/NotificationCenter';
 
 const Header: React.FC = () => {
   const { user, signOut } = useAuth();
@@ -104,6 +105,7 @@ const Header: React.FC = () => {
               </>
             ) : (
               <>
+                <NotificationCenter />
                 <Link to="/account" className="flex flex-col items-center relative text-gray-600 hover:text-violet-600">
                   <User size={24} className="text-fuchsia-600" />
                   {unreadCount > 0 && (

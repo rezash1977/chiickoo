@@ -19,32 +19,22 @@ interface Category {
   icon?: string;
 }
 
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1vc3Vqam1sZndlbWFhYW5ocmNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxNzI4MTksImV4cCI6MjA2Mzc0ODgxOX0.vegUrqTj6ou1PKf6Jq6xehaFMuya1j9XKPRJbF2WZj4';
-const SUPABASE_URL = 'https://mosujjmlfwemaaanhrcm.supabase.co';
-
 // تابع آپلود تصویر به Supabase Storage
 const uploadImageToSupabase = async (file: File): Promise<string> => {
-  const filePath = `uploads/${Date.now()}_${file.name}`;
-  const bucket = 'pic';
+  const fileName = `${Date.now()}_${file.name}`;
+  const { data, error } = await supabase.storage
+    .from('pic')
+    .upload(fileName, file);
 
-  const response = await fetch(
-    `${SUPABASE_URL}/storage/v1/object/${bucket}/${filePath}`,
-    {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'Content-Type': file.type,
-      },
-      body: file,
-    }
-  );
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`خطا در آپلود تصویر: ${errorText}`);
+  if (error) {
+    throw new Error(`خطا در آپلود تصویر: ${error.message}`);
   }
 
-  return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${filePath}`;
+  const { data: { publicUrl } } = supabase.storage
+    .from('pic')
+    .getPublicUrl(fileName);
+
+  return publicUrl;
 };
 
 const PostAdPage: React.FC = () => {
@@ -107,83 +97,20 @@ const PostAdPage: React.FC = () => {
           .from('categories')
           .select('*')
           .order('name');
-        
+
         if (error) {
           console.error('Error fetching categories:', error);
           return;
         }
-        
+
         setAllCategories(data || []);
       } catch (err) {
         console.error('Error fetching categories:', err);
       }
     };
-    
+
     fetchCategories();
   }, []);
-
-  // پیشنهاد دسته‌بندی بر اساس عنوان
-  useEffect(() => {
-    if (!basicData.title || !basicData.description || !allCategories.length) return;
-    
-    // استفاده از مدل ML برای پیشنهاد دسته‌بندی
-    const predictCategory = async () => {
-      try {
-        console.log('Sending request to ML API...');
-        const response = await fetch('http://localhost:8000/predict-category', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            title: basicData.title,
-            description: basicData.description
-          })
-        });
-        
-        if (response.ok) {
-          const result = await response.json();
-          console.log('ML API response:', result);
-          const predictedCategory = result.category;
-          
-          // پیدا کردن دسته‌بندی پیشنهادی در لیست
-          const suggested = allCategories.filter(cat => cat.slug === predictedCategory);
-          
-          if (suggested.length > 0) {
-            setSuggestedCategories(suggested);
-          } else {
-            // اگر دسته‌بندی پیشنهادی در لیست نبود، همه را نشان بده
-            setSuggestedCategories(allCategories);
-          }
-        } else {
-          console.log('ML API failed, using keyword method');
-          // در صورت خطا، از روش کلمات کلیدی استفاده کن
-          const suggestedSlugs = suggestCategories(basicData.title);
-          const suggested = allCategories.filter(cat => suggestedSlugs.includes(cat.slug));
-          
-          if (suggested.length === 0) {
-            setSuggestedCategories(allCategories);
-          } else {
-            setSuggestedCategories(suggested);
-          }
-        }
-      } catch (error) {
-        console.error('Error predicting category:', error);
-        console.log('Using keyword method as fallback');
-        // در صورت خطا، از روش کلمات کلیدی استفاده کن
-        const suggestedSlugs = suggestCategories(basicData.title);
-        const suggested = allCategories.filter(cat => suggestedSlugs.includes(cat.slug));
-        
-        if (suggested.length === 0) {
-          setSuggestedCategories(allCategories);
-        } else {
-          setSuggestedCategories(suggested);
-        }
-      }
-    };
-    
-    predictCategory();
-  }, [basicData.title, basicData.description, allCategories]);
 
   const getCategoryIcon = (slug: string) => {
     switch (slug) {
@@ -394,18 +321,17 @@ const PostAdPage: React.FC = () => {
                 <h2 className="text-xl font-bold mb-2">انتخاب دسته آگهی <span className="text-red-500">*</span></h2>
                 <p className="text-gray-600">یکی از دسته های زیر را انتخاب کنید.</p>
               </div>
-              
+
               {/* دسته‌بندی‌های پیشنهادی */}
               <div className="space-y-3">
                 {(showAllCategories ? allCategories : suggestedCategories).map((cat) => (
                   <div
                     key={cat.id}
                     onClick={() => setCategory(cat.slug)}
-                    className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
-                      category === cat.slug
-                        ? 'border-primary bg-primary/5'
-                        : 'border-gray-200 hover:border-primary/50'
-                    }`}
+                    className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${category === cat.slug
+                      ? 'border-primary bg-primary/5'
+                      : 'border-gray-200 hover:border-primary/50'
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded">
@@ -419,7 +345,7 @@ const PostAdPage: React.FC = () => {
                   </div>
                 ))}
               </div>
-              
+
               {/* دکمه نمایش همه دسته‌ها */}
               {!showAllCategories && (
                 <div
@@ -440,7 +366,7 @@ const PostAdPage: React.FC = () => {
                 </div>
               )}
             </div>
-            
+
             {category && (
               <DynamicAdForm
                 formData={dynamicData}
@@ -448,9 +374,12 @@ const PostAdPage: React.FC = () => {
                 onSubmit={handleSubmitAd}
                 submitting={submitting}
                 uploading={uploading}
+                category={category}
+                showCategorySelector={false}
+                showSubmitButton={false}
               />
             )}
-            
+
             <div className="flex justify-between mt-6">
               <button
                 className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg"

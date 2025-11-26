@@ -2,9 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader, Heart, Trash2 } from 'lucide-react';
-import Navbar from '../components/layout/Navbar';
 import { Link } from 'react-router-dom';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useToast } from '@/components/ui/use-toast';
@@ -25,34 +23,37 @@ const FavoritesPage: React.FC = () => {
   const { toast } = useToast();
   const [ads, setAds] = useState<Ad[]>([]);
   const [loading, setLoading] = useState(true);
-  const { favorites, removeFromFavorites, refetch } = useFavorites();
+  const { favorites, removeFromFavorites } = useFavorites();
 
   useEffect(() => {
     const fetchFavorites = async () => {
-      if (!user) return;
+      if (!user) {
+        setAds([]);
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       try {
-        // دریافت آگهی‌های نشان شده
         const { data: favs, error: favsError } = await supabase
           .from('favorites')
           .select('ad_id')
           .eq('user_id', user.id);
-        
+
         if (favsError || !favs || favs.length === 0) {
           setAds([]);
           setLoading(false);
           return;
         }
-        
+
         const adIds = favs.map((f: any) => f.ad_id);
-        
-        // دریافت اطلاعات آگهی‌ها
+
         const { data: adsData, error: adsError } = await supabase
           .from('ads')
           .select('id, title, status, price, location, images, created_at')
           .in('id', adIds)
           .order('created_at', { ascending: false });
-        
+
         if (!adsError && adsData) {
           setAds(adsData);
         } else {
@@ -65,9 +66,9 @@ const FavoritesPage: React.FC = () => {
         setLoading(false);
       }
     };
-    
+
     fetchFavorites();
-  }, [user, favorites]);
+  }, [user]);
 
   const handleRemoveFavorite = async (adId: string) => {
     const success = await removeFromFavorites(adId);
@@ -85,8 +86,8 @@ const FavoritesPage: React.FC = () => {
     }
   };
 
-  const formatPrice = (price: number | null) => {
-    if (!price) return 'توافقی';
+  const formatPrice = (price: number | null | undefined) => {
+    if (price === null || price === undefined) return 'توافقی';
     return `${Number(price).toLocaleString('fa-IR')} تومان`;
   };
 
@@ -107,9 +108,9 @@ const FavoritesPage: React.FC = () => {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="flex justify-center items-center py-8">
+              <div className="flex justify-center items-center py-8 gap-2">
                 <Loader className="animate-spin w-8 h-8 text-violet-600" />
-                <span className="mr-2">در حال بارگذاری...</span>
+                <span>در حال بارگذاری...</span>
               </div>
             ) : ads.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
@@ -121,7 +122,6 @@ const FavoritesPage: React.FC = () => {
               <div className="space-y-4">
                 {ads.map((ad) => (
                   <div key={ad.id} className="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-4">
-                    {/* تصویر آگهی */}
                     <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
                       <img
                         src={ad.images && ad.images.length > 0 ? ad.images[0] : 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=300&h=200&fit=crop'}
@@ -129,8 +129,6 @@ const FavoritesPage: React.FC = () => {
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    
-                    {/* اطلاعات آگهی */}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-medium text-sm mb-1 truncate">{ad.title}</h3>
                       <p className="text-green-600 font-bold text-xs mb-1">{formatPrice(ad.price)}</p>
@@ -139,8 +137,6 @@ const FavoritesPage: React.FC = () => {
                         <span>{new Date(ad.created_at).toLocaleDateString('fa-IR')}</span>
                       </div>
                     </div>
-                    
-                    {/* دکمه‌های عملیات */}
                     <div className="flex items-center gap-2">
                       <Link 
                         to={`/ad/${ad.id}`} 
@@ -167,4 +163,4 @@ const FavoritesPage: React.FC = () => {
   );
 };
 
-export default FavoritesPage; 
+export default FavoritesPage;

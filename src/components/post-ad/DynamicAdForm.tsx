@@ -7,21 +7,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { 
-  Home, 
-  Building2, 
-  Store, 
-  MapPin, 
-  Car, 
-  Warehouse,
-  Bed,
-  Bath,
+import {
+  Home,
+  Building2,
+  Store,
+  MapPin,
   Square,
   DollarSign,
   Phone,
-  FileText,
-  Image as ImageIcon
+  FileText
 } from 'lucide-react';
 
 interface Category {
@@ -50,6 +44,9 @@ interface DynamicAdFormProps {
   onSubmit: () => void;
   submitting: boolean;
   uploading: boolean;
+  category?: string;
+  showCategorySelector?: boolean;
+  showSubmitButton?: boolean;
 }
 
 // تعریف فیلدهای مختلف برای هر دسته‌بندی
@@ -65,37 +62,49 @@ const categoryConfigs: { [key: string]: CategoryField[] } = {
     { name: 'floor', label: 'طبقه', type: 'number', required: false, min: -5, max: 50 },
     { name: 'totalFloors', label: 'تعداد کل طبقات', type: 'number', required: false, min: 1, max: 50 },
     { name: 'age', label: 'سن بنا (سال)', type: 'number', required: false, min: 0, max: 50 },
-    { name: 'parking', label: 'پارکینگ', type: 'select', required: false, options: [
-      { value: 'yes', label: 'دارد' },
-      { value: 'no', label: 'ندارد' }
-    ]},
-    { name: 'elevator', label: 'آسانسور', type: 'select', required: false, options: [
-      { value: 'yes', label: 'دارد' },
-      { value: 'no', label: 'ندارد' }
-    ]},
-    { name: 'balcony', label: 'بالکن', type: 'select', required: false, options: [
-      { value: 'yes', label: 'دارد' },
-      { value: 'no', label: 'ندارد' }
-    ]},
-    { name: 'warehouse', label: 'انباری', type: 'select', required: false, options: [
-      { value: 'yes', label: 'دارد' },
-      { value: 'no', label: 'ندارد' }
-    ]},
-    { name: 'cooling', label: 'سیستم سرمایشی', type: 'select', required: false, options: [
-      { value: 'split', label: 'اسپلیت' },
-      { value: 'central', label: 'مرکزی' },
-      { value: 'none', label: 'ندارد' }
-    ]},
-    { name: 'heating', label: 'سیستم گرمایشی', type: 'select', required: false, options: [
-      { value: 'radiator', label: 'رادیاتور' },
-      { value: 'floor', label: 'گرمایش از کف' },
-      { value: 'none', label: 'ندارد' }
-    ]},
+    {
+      name: 'parking', label: 'پارکینگ', type: 'select', required: false, options: [
+        { value: 'yes', label: 'دارد' },
+        { value: 'no', label: 'ندارد' }
+      ]
+    },
+    {
+      name: 'elevator', label: 'آسانسور', type: 'select', required: false, options: [
+        { value: 'yes', label: 'دارد' },
+        { value: 'no', label: 'ندارد' }
+      ]
+    },
+    {
+      name: 'balcony', label: 'بالکن', type: 'select', required: false, options: [
+        { value: 'yes', label: 'دارد' },
+        { value: 'no', label: 'ندارد' }
+      ]
+    },
+    {
+      name: 'warehouse', label: 'انباری', type: 'select', required: false, options: [
+        { value: 'yes', label: 'دارد' },
+        { value: 'no', label: 'ندارد' }
+      ]
+    },
+    {
+      name: 'cooling', label: 'سیستم سرمایشی', type: 'select', required: false, options: [
+        { value: 'split', label: 'اسپلیت' },
+        { value: 'central', label: 'مرکزی' },
+        { value: 'none', label: 'ندارد' }
+      ]
+    },
+    {
+      name: 'heating', label: 'سیستم گرمایشی', type: 'select', required: false, options: [
+        { value: 'radiator', label: 'رادیاتور' },
+        { value: 'floor', label: 'گرمایش از کف' },
+        { value: 'none', label: 'ندارد' }
+      ]
+    },
     { name: 'location', label: 'موقعیت مکانی', type: 'text', required: true, placeholder: 'مثال: ونک، خیابان ولیعصر' },
     { name: 'description', label: 'توضیحات', type: 'textarea', required: true, placeholder: 'توضیحات کامل آگهی را اینجا بنویسید...' },
     { name: 'phone', label: 'شماره تماس', type: 'phone', required: true }
   ],
-  
+
   villa: [
     { name: 'title', label: 'عنوان آگهی', type: 'text', required: true, placeholder: 'مثال: ویلا 3 خوابه در لواسان' },
     { name: 'price', label: 'قیمت فروش (تومان)', type: 'price', required: true },
@@ -107,23 +116,29 @@ const categoryConfigs: { [key: string]: CategoryField[] } = {
     { name: 'bathrooms', label: 'تعداد سرویس بهداشتی', type: 'number', required: true, min: 1, max: 5 },
     { name: 'floors', label: 'تعداد طبقات', type: 'number', required: true, min: 1, max: 5 },
     { name: 'age', label: 'سن بنا (سال)', type: 'number', required: false, min: 0, max: 50 },
-    { name: 'parking', label: 'پارکینگ', type: 'select', required: false, options: [
-      { value: 'yes', label: 'دارد' },
-      { value: 'no', label: 'ندارد' }
-    ]},
-    { name: 'garden', label: 'باغچه', type: 'select', required: false, options: [
-      { value: 'yes', label: 'دارد' },
-      { value: 'no', label: 'ندارد' }
-    ]},
-    { name: 'pool', label: 'استخر', type: 'select', required: false, options: [
-      { value: 'yes', label: 'دارد' },
-      { value: 'no', label: 'ندارد' }
-    ]},
+    {
+      name: 'parking', label: 'پارکینگ', type: 'select', required: false, options: [
+        { value: 'yes', label: 'دارد' },
+        { value: 'no', label: 'ندارد' }
+      ]
+    },
+    {
+      name: 'garden', label: 'باغچه', type: 'select', required: false, options: [
+        { value: 'yes', label: 'دارد' },
+        { value: 'no', label: 'ندارد' }
+      ]
+    },
+    {
+      name: 'pool', label: 'استخر', type: 'select', required: false, options: [
+        { value: 'yes', label: 'دارد' },
+        { value: 'no', label: 'ندارد' }
+      ]
+    },
     { name: 'location', label: 'موقعیت مکانی', type: 'text', required: true, placeholder: 'مثال: لواسان، جاده فشم' },
     { name: 'description', label: 'توضیحات', type: 'textarea', required: true, placeholder: 'توضیحات کامل آگهی را اینجا بنویسید...' },
     { name: 'phone', label: 'شماره تماس', type: 'phone', required: true }
   ],
-  
+
   office: [
     { name: 'title', label: 'عنوان آگهی', type: 'text', required: true, placeholder: 'مثال: دفتر اداری در مرکز شهر' },
     { name: 'price', label: 'قیمت فروش (تومان)', type: 'price', required: true },
@@ -134,23 +149,29 @@ const categoryConfigs: { [key: string]: CategoryField[] } = {
     { name: 'floor', label: 'طبقه', type: 'number', required: false, min: -5, max: 50 },
     { name: 'totalFloors', label: 'تعداد کل طبقات', type: 'number', required: false, min: 1, max: 50 },
     { name: 'age', label: 'سن بنا (سال)', type: 'number', required: false, min: 0, max: 50 },
-    { name: 'parking', label: 'پارکینگ', type: 'select', required: false, options: [
-      { value: 'yes', label: 'دارد' },
-      { value: 'no', label: 'ندارد' }
-    ]},
-    { name: 'elevator', label: 'آسانسور', type: 'select', required: false, options: [
-      { value: 'yes', label: 'دارد' },
-      { value: 'no', label: 'ندارد' }
-    ]},
-    { name: 'security', label: 'نگهبان', type: 'select', required: false, options: [
-      { value: 'yes', label: 'دارد' },
-      { value: 'no', label: 'ندارد' }
-    ]},
+    {
+      name: 'parking', label: 'پارکینگ', type: 'select', required: false, options: [
+        { value: 'yes', label: 'دارد' },
+        { value: 'no', label: 'ندارد' }
+      ]
+    },
+    {
+      name: 'elevator', label: 'آسانسور', type: 'select', required: false, options: [
+        { value: 'yes', label: 'دارد' },
+        { value: 'no', label: 'ندارد' }
+      ]
+    },
+    {
+      name: 'security', label: 'نگهبان', type: 'select', required: false, options: [
+        { value: 'yes', label: 'دارد' },
+        { value: 'no', label: 'ندارد' }
+      ]
+    },
     { name: 'location', label: 'موقعیت مکانی', type: 'text', required: true, placeholder: 'مثال: مرکز شهر، خیابان ولیعصر' },
     { name: 'description', label: 'توضیحات', type: 'textarea', required: true, placeholder: 'توضیحات کامل آگهی را اینجا بنویسید...' },
     { name: 'phone', label: 'شماره تماس', type: 'phone', required: true }
   ],
-  
+
   shop: [
     { name: 'title', label: 'عنوان آگهی', type: 'text', required: true, placeholder: 'مثال: مغازه در مرکز خرید' },
     { name: 'price', label: 'قیمت فروش (تومان)', type: 'price', required: true },
@@ -159,48 +180,62 @@ const categoryConfigs: { [key: string]: CategoryField[] } = {
     { name: 'area', label: 'متراژ', type: 'area', required: true, unit: 'متر مربع' },
     { name: 'floor', label: 'طبقه', type: 'number', required: false, min: -5, max: 10 },
     { name: 'age', label: 'سن بنا (سال)', type: 'number', required: false, min: 0, max: 50 },
-    { name: 'parking', label: 'پارکینگ', type: 'select', required: false, options: [
-      { value: 'yes', label: 'دارد' },
-      { value: 'no', label: 'ندارد' }
-    ]},
-    { name: 'warehouse', label: 'انباری', type: 'select', required: false, options: [
-      { value: 'yes', label: 'دارد' },
-      { value: 'no', label: 'ندارد' }
-    ]},
+    {
+      name: 'parking', label: 'پارکینگ', type: 'select', required: false, options: [
+        { value: 'yes', label: 'دارد' },
+        { value: 'no', label: 'ندارد' }
+      ]
+    },
+    {
+      name: 'warehouse', label: 'انباری', type: 'select', required: false, options: [
+        { value: 'yes', label: 'دارد' },
+        { value: 'no', label: 'ندارد' }
+      ]
+    },
     { name: 'location', label: 'موقعیت مکانی', type: 'text', required: true, placeholder: 'مثال: مرکز خرید، خیابان ولیعصر' },
     { name: 'description', label: 'توضیحات', type: 'textarea', required: true, placeholder: 'توضیحات کامل آگهی را اینجا بنویسید...' },
     { name: 'phone', label: 'شماره تماس', type: 'phone', required: true }
   ],
-  
+
   land: [
     { name: 'title', label: 'عنوان آگهی', type: 'text', required: true, placeholder: 'مثال: زمین مسکونی در لواسان' },
     { name: 'price', label: 'قیمت فروش (تومان)', type: 'price', required: true },
     { name: 'area', label: 'متراژ زمین', type: 'area', required: true, unit: 'متر مربع' },
     { name: 'width', label: 'عرض زمین (متر)', type: 'number', required: false, min: 1, max: 1000 },
     { name: 'length', label: 'طول زمین (متر)', type: 'number', required: false, min: 1, max: 1000 },
-    { name: 'usage', label: 'نوع کاربری', type: 'select', required: true, options: [
-      { value: 'residential', label: 'مسکونی' },
-      { value: 'commercial', label: 'تجاری' },
-      { value: 'agricultural', label: 'کشاورزی' },
-      { value: 'industrial', label: 'صنعتی' }
-    ]},
-    { name: 'access', label: 'دسترسی', type: 'select', required: false, options: [
-      { value: 'asphalt', label: 'آسفالت' },
-      { value: 'dirt', label: 'خاکی' },
-      { value: 'none', label: 'ندارد' }
-    ]},
-    { name: 'water', label: 'آب', type: 'select', required: false, options: [
-      { value: 'yes', label: 'دارد' },
-      { value: 'no', label: 'ندارد' }
-    ]},
-    { name: 'electricity', label: 'برق', type: 'select', required: false, options: [
-      { value: 'yes', label: 'دارد' },
-      { value: 'no', label: 'ندارد' }
-    ]},
-    { name: 'gas', label: 'گاز', type: 'select', required: false, options: [
-      { value: 'yes', label: 'دارد' },
-      { value: 'no', label: 'ندارد' }
-    ]},
+    {
+      name: 'usage', label: 'نوع کاربری', type: 'select', required: true, options: [
+        { value: 'residential', label: 'مسکونی' },
+        { value: 'commercial', label: 'تجاری' },
+        { value: 'agricultural', label: 'کشاورزی' },
+        { value: 'industrial', label: 'صنعتی' }
+      ]
+    },
+    {
+      name: 'access', label: 'دسترسی', type: 'select', required: false, options: [
+        { value: 'asphalt', label: 'آسفالت' },
+        { value: 'dirt', label: 'خاکی' },
+        { value: 'none', label: 'ندارد' }
+      ]
+    },
+    {
+      name: 'water', label: 'آب', type: 'select', required: false, options: [
+        { value: 'yes', label: 'دارد' },
+        { value: 'no', label: 'ندارد' }
+      ]
+    },
+    {
+      name: 'electricity', label: 'برق', type: 'select', required: false, options: [
+        { value: 'yes', label: 'دارد' },
+        { value: 'no', label: 'ندارد' }
+      ]
+    },
+    {
+      name: 'gas', label: 'گاز', type: 'select', required: false, options: [
+        { value: 'yes', label: 'دارد' },
+        { value: 'no', label: 'ندارد' }
+      ]
+    },
     { name: 'location', label: 'موقعیت مکانی', type: 'text', required: true, placeholder: 'مثال: لواسان، جاده فشم' },
     { name: 'description', label: 'توضیحات', type: 'textarea', required: true, placeholder: 'توضیحات کامل آگهی را اینجا بنویسید...' },
     { name: 'phone', label: 'شماره تماس', type: 'phone', required: true }
@@ -234,7 +269,10 @@ const DynamicAdForm: React.FC<DynamicAdFormProps> = ({
   updateFormData,
   onSubmit,
   submitting,
-  uploading
+  uploading,
+  category,
+  showCategorySelector = true,
+  showSubmitButton = true
 }) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -275,10 +313,11 @@ const DynamicAdForm: React.FC<DynamicAdFormProps> = ({
     fetchCategories();
   }, [toast]);
 
-  const currentFields = formData.category ? categoryConfigs[formData.category] || [] : [];
-  
+  const activeCategory = category || formData.category;
+  const currentFields = activeCategory ? categoryConfigs[activeCategory] || [] : [];
+
   // Debug: Log current category and fields
-  console.log('Current category:', formData.category);
+  console.log('Current category:', activeCategory);
   console.log('Current fields:', currentFields);
   console.log('Available categories:', categories.map(c => c.slug));
 
@@ -404,42 +443,43 @@ const DynamicAdForm: React.FC<DynamicAdFormProps> = ({
   return (
     <div className="space-y-6">
       {/* دسته‌بندی */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Home className="w-5 h-5" />
-            انتخاب دسته‌بندی
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-            {categories.map((category) => (
-              <div
-                key={category.id}
-                onClick={() => updateFormData({ category: category.slug })}
-                className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md ${
-                  formData.category === category.slug
-                    ? 'border-primary bg-primary/5'
-                    : 'border-gray-200 hover:border-primary/50'
-                }`}
-              >
-                <div className="flex flex-col items-center gap-2 text-center">
-                  {getCategoryIcon(category.slug)}
-                  <span className="text-sm font-medium">{category.name}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* فرم دینامیک */}
-      {formData.category && currentFields.length > 0 && (
+      {showCategorySelector && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              {getCategoryIcon(formData.category)}
-              اطلاعات {categories.find(c => c.slug === formData.category)?.name}
+              <Home className="w-5 h-5" />
+              انتخاب دسته‌بندی
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+              {categories.map((cat) => (
+                <div
+                  key={cat.id}
+                  onClick={() => updateFormData({ category: cat.slug })}
+                  className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md ${(category || formData.category) === cat.slug
+                      ? 'border-primary bg-primary/5'
+                      : 'border-gray-200 hover:border-primary/50'
+                    }`}
+                >
+                  <div className="flex flex-col items-center gap-2 text-center">
+                    {getCategoryIcon(cat.slug)}
+                    <span className="text-sm font-medium">{cat.name}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* فرم دینامیک */}
+      {activeCategory && currentFields.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              {getCategoryIcon(activeCategory)}
+              اطلاعات {categories.find(c => c.slug === activeCategory)?.name}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -463,7 +503,7 @@ const DynamicAdForm: React.FC<DynamicAdFormProps> = ({
       )}
 
       {/* دکمه ثبت */}
-      {formData.category && currentFields.length > 0 && (
+      {showSubmitButton && activeCategory && currentFields.length > 0 && (
         <Card>
           <CardContent className="pt-6">
             <Button
@@ -484,7 +524,7 @@ const DynamicAdForm: React.FC<DynamicAdFormProps> = ({
       )}
 
       {/* نمایش خطا اگر دسته‌بندی انتخاب شده اما فیلدها موجود نیستند */}
-      {formData.category && currentFields.length === 0 && (
+      {activeCategory && currentFields.length === 0 && (
         <Card>
           <CardContent className="pt-6">
             <div className="text-center text-red-500">
@@ -498,4 +538,4 @@ const DynamicAdForm: React.FC<DynamicAdFormProps> = ({
   );
 };
 
-export default DynamicAdForm; 
+export default DynamicAdForm;

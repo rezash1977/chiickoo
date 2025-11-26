@@ -750,13 +750,7 @@ const AdminDashboard: React.FC = () => {
                       <MessageSquare className="w-5 h-5" />
                       مدیریت چت‌ها و پیام‌ها
                     </CardTitle>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleAddTestMessage}
-                    >
-                      اضافه کردن پیام تست
-                    </Button>
+                    
                   </div>
                 </CardHeader>
               <CardContent>

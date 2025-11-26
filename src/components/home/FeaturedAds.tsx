@@ -1,9 +1,10 @@
-import React from 'react';
-import { useAds } from '@/hooks/useAds';
+import React, { useState } from 'react';
+import { useAds, SortOption } from '@/hooks/useAds';
 import AdCard from '@/components/ui/AdCard';
 
 const FeaturedAds: React.FC = () => {
-  const { data: ads, isLoading, error } = useAds();
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const { data: ads, isLoading, error } = useAds(undefined, sortBy);
 
   if (isLoading) {
     return (
@@ -30,11 +31,20 @@ const FeaturedAds: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 mb-20">
-      <div className="mb-4">
-        <h2 className="font-bold text-lg">آگهی‌های ویژه</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-bold">آگهی‌های ویژه</h2>
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as SortOption)}
+          className="p-2 border border-gray-300 rounded-md text-sm"
+        >
+          <option value="newest">جدیدترین</option>
+          <option value="oldest">قدیمی‌ترین</option>
+          <option value="price_asc">ارزان‌ترین</option>
+          <option value="price_desc">گران‌ترین</option>
+        </select>
       </div>
-      
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {featuredAds.length > 0 ? (
           featuredAds.map((ad) => (
             <AdCard

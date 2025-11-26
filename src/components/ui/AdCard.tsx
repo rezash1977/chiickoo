@@ -1,10 +1,11 @@
-import React from 'react';
+﻿import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart } from 'lucide-react';
+import { Heart, Mail } from 'lucide-react';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
 import { formatPrice } from '@/lib/utils';
+import ContactInfoModal from './ContactInfoModal';
 
 interface AdCardProps {
   id: string;
@@ -14,6 +15,7 @@ interface AdCardProps {
   imageUrl: string;
   description: string | null;
   categoryName: string;
+  userId: string;
   showFavoriteButton?: boolean;
   className?: string;
 }
@@ -26,12 +28,14 @@ const AdCard: React.FC<AdCardProps> = ({
   imageUrl, 
   description, 
   categoryName,
+  userId,
   showFavoriteButton = true,
   className = ""
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { isFavorite, toggleFavorite } = useFavorites();
+  const [showContactModal, setShowContactModal] = useState(false);
 
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -61,47 +65,67 @@ const AdCard: React.FC<AdCardProps> = ({
     }
   };
 
+  const handleContactClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowContactModal(true);
+  };
+
   return (
-    <div className={`relative bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow animate-fade-in ${className}`}>
-      <Link to={`/ad/${id}`} className="flex items-center">
-        <div className="w-16 h-16 flex-shrink-0">
-          <img 
-            src={imageUrl || 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43'} 
-            alt={title} 
-            className="w-full h-full object-cover" 
-          />
-        </div>
-        <div className="flex-1 p-2 min-w-0">
-          <h3 className="font-medium text-xs mb-0.5 truncate">{title}</h3>
-          {price && (
-            <p className="text-green-600 font-bold text-xs mb-0.5">{formatPrice(price)} تومان</p>
-          )}
-          <div className="flex items-center justify-between text-[10px] text-gray-500 mb-1">
-            <span>{categoryName}</span>
-            {location && <span>{location}</span>}
+    <>
+      <div className={`relative bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow animate-fade-in ${className}`}>
+        <Link to={`/ad/${id}`} className="flex items-center">
+          <div className="w-16 h-16 flex-shrink-0">
+            <img 
+              src={imageUrl || 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43'} 
+              alt={title} 
+              className="w-full h-full object-cover" 
+            />
           </div>
-          {description && (
-            <p className="text-[10px] text-gray-600 line-clamp-2 leading-relaxed">
-              {description}
-            </p>
-          )}
-        </div>
-      </Link>
-      
-      {showFavoriteButton && (
+          <div className="flex-1 p-2 min-w-0">
+            <h3 className="font-medium text-xs mb-0.5 truncate">{title}</h3>
+            {price !== null && (
+              <p className="text-green-600 font-bold text-xs mb-0.5">{formatPrice(price)} تومان</p>
+            )}
+            <div className="flex items-center justify-between text-[10px] text-gray-500 mb-1">
+              <span>{categoryName}</span>
+              {location && <span>{location}</span>}
+            </div>
+            {description && (
+              <p className="text-[10px] text-gray-600 line-clamp-2 leading-relaxed">
+                {description}
+              </p>
+            )}
+          </div>
+        </Link>
+
+        {showFavoriteButton && (
+          <button
+            onClick={handleFavoriteClick}
+            className="absolute top-2 left-2 p-1.5 rounded-full transition-all bg-white shadow-md"
+            title="نشان کردن آگهی"
+          >
+            <Heart className="w-3 h-3" />
+          </button>
+        )}
+
         <button
-          onClick={handleFavoriteClick}
-          className={`absolute top-2 left-2 p-1.5 rounded-full transition-all ${
-            isFavorite(id)
-              ? 'bg-red-500 text-white shadow-md'
-              : 'bg-white/80 text-gray-600 hover:bg-red-500 hover:text-white'
-          }`}
+          onClick={handleContactClick}
+          className="absolute top-2 right-2 p-1.5 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-all shadow-md"
+          title="اطلاعات تماس"
         >
-          <Heart className={`w-3 h-3 ${isFavorite(id) ? 'fill-current' : ''}`} />
+          <Mail className="w-3 h-3" />
         </button>
-      )}
-    </div>
+      </div>
+
+      <ContactInfoModal
+        isOpen={showContactModal}
+        onClose={() => setShowContactModal(false)}
+        userId={userId}
+        adTitle={title}
+      />
+    </>
   );
 };
 
-export default AdCard; 
+export default AdCard;
