@@ -112,6 +112,74 @@ const PostAdPage: React.FC = () => {
     fetchCategories();
   }, []);
 
+  // پیشنهاد دسته‌بندی بر اساس عنوان
+  useEffect(() => {
+    if (!basicData.title || !basicData.description || !allCategories.length) return;
+
+    // استفاده از مدل ML برای پیشنهاد دسته‌بندی
+    const predictCategory = async () => {
+      try {
+        console.log('Sending request to ML API...');
+        const response = await fetch('http://localhost:8000/predict-category', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            title: basicData.title,
+            description: basicData.description
+          })
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log('ML API response:', result);
+          const predictedCategory = result.category;
+
+          // پیدا کردن دسته‌بندی پیشنهادی در لیست
+          const suggested = allCategories.filter(cat => cat.slug === predictedCategory);
+
+          if (suggested.length > 0) {
+            setSuggestedCategories(suggested);
+            toast({
+              title: "دسته‌بندی پیشنهادی",
+              description: `با توجه به آگهی شما، دسته‌بندی "${suggested[0].name}" پیشنهاد می‌شود.`,
+            });
+          } else {
+            setSuggestedCategories(allCategories);
+          }
+        } else {
+          console.log('ML API failed, using keyword method');
+          const suggestedSlugs = suggestCategories(basicData.title);
+          const suggested = allCategories.filter(cat => suggestedSlugs.includes(cat.slug));
+
+          if (suggested.length === 0) {
+            setSuggestedCategories(allCategories);
+          } else {
+            setSuggestedCategories(suggested);
+          }
+        }
+      } catch (error) {
+        console.error('Error predicting category:', error);
+        console.log('Using keyword method as fallback');
+        const suggestedSlugs = suggestCategories(basicData.title);
+        const suggested = allCategories.filter(cat => suggestedSlugs.includes(cat.slug));
+
+        if (suggested.length === 0) {
+          setSuggestedCategories(allCategories);
+        } else {
+          setSuggestedCategories(suggested);
+        }
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      predictCategory();
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
+  }, [basicData.title, basicData.description, allCategories]);
+
   const getCategoryIcon = (slug: string) => {
     switch (slug) {
       case 'shop_rent':
