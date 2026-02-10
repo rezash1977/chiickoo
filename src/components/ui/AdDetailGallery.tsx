@@ -16,13 +16,18 @@ const AdDetailGallery: React.FC<AdDetailGalleryProps> = ({ images, title }) => {
   return (
     <div>
       {/* Main Image */}
-      <div className="w-full aspect-w-16 aspect-h-10 rounded-lg overflow-hidden bg-gray-100 cursor-zoom-in mb-2" onClick={() => setZoomOpen(true)}>
-        <img
-          src={images[activeIndex]}
-          alt={title || ''}
-          className="w-full h-full object-cover transition-all duration-200 hover:scale-105"
-        />
-      </div>
+      <div
+  className="w-full max-w-[720px] mx-auto rounded-xl overflow-hidden bg-gray-100 cursor-zoom-in mb-2"
+  onClick={() => setZoomOpen(true)}
+>
+  <img
+    src={images[activeIndex]}
+    alt={title || ''}
+    loading="lazy"
+    className="w-full h-[420px] object-cover transition-transform duration-200 hover:scale-105"
+  />
+</div>
+
       {/* Thumbnails */}
       {images.length > 1 && (
         <div className="flex gap-2 mt-2 overflow-x-auto pb-1">
@@ -31,13 +36,18 @@ const AdDetailGallery: React.FC<AdDetailGalleryProps> = ({ images, title }) => {
               key={img + idx}
               onClick={() => setActiveIndex(idx)}
               className={`rounded-lg border-2 ${activeIndex === idx ? 'border-violet-600' : 'border-transparent'} focus:outline-none focus:ring-2 focus:ring-violet-400`}
-              style={{ minWidth: 64, minHeight: 48 }}
+              className={`w-16 h-12 rounded-lg border-2 ${
+  activeIndex === idx ? 'border-violet-600' : 'border-transparent'
+}`}
+
             >
               <img
-                src={img}
-                alt={title || ''}
-                className="w-16 h-12 object-cover rounded-lg"
-              />
+  src={img}
+  alt={title || ''}
+  loading="lazy"
+  className="w-full h-full object-cover rounded-md"
+/>
+
             </button>
           ))}
         </div>
