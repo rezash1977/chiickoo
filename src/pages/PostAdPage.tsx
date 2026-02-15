@@ -272,34 +272,65 @@ const PostAdPage: React.FC = () => {
         .eq('slug', category)
         .single();
 
-      if (categoryError || !categoryData) {
+      // بررسی اعتبار categoryData
+      if (categoryError || !categoryData?.id) { // Ensure id exists
         throw new Error('دسته‌بندی انتخاب شده یافت نشد.');
       }
 
       // آماده‌سازی تصاویر
       const imagesToSend = imageUrls.length > 0 ? imageUrls : (Array.isArray(basicData.images) ? basicData.images.filter(i => typeof i === 'string') : []);
 
-      // ساخت داده نهایی آگهی
+      // جداسازی فیلدهای استاندارد و ویژگی‌های خاص
+      // price, location, phone, description, title are standard columns in ads table
+      // description and title come from basicData usually, but description *might* be in dynamicData for some categories if we didn't remove it or if it overrides.
+      // We assume basicData has title and description (Step 1).
+      // dynamicData has price, location, phone (Step 2) and others.
+      const { price, location, phone, ...otherFeatures } = dynamicData as any;
+
+      // ساخت داده نهایی جدول ads
       const adData = {
         title: basicData.title,
         description: basicData.description,
-        price: basicData.price ? Number(basicData.price) : null,
-        location: basicData.location || null,
-        phone: basicData.phone || null,
+        price: price ? Number(price) : (basicData.price ? Number(basicData.price) : null),
+        location: location || basicData.location || null,
+        phone: phone || basicData.phone || null,
         images: imagesToSend,
         category_id: categoryData.id,
         user_id: user.id,
-        status: 'pending',
-        ...dynamicData // فیلدهای داینامیک
+        status: 'pending' // Default status
       };
 
-      const { error: insertError } = await supabase
+      // 1. ثبت در جدول ads
+      const { data: insertedAd, error: insertAdError } = await supabase
         .from('ads')
-        .insert([adData]);
+        .insert(adData)
+        .select()
+        .single();
 
-      if (insertError) {
-        console.error('Error inserting ad:', insertError);
+      if (insertAdError) {
+        console.error('Error inserting ad:', insertAdError);
         throw new Error('خطا در ثبت آگهی. لطفاً دوباره تلاش کنید.');
+      }
+
+      // 2. ثبت جزئیات در جدول ad_details
+      if (insertedAd && Object.keys(otherFeatures).length > 0) {
+        const { error: insertDetailsError } = await supabase
+          .from('ad_details')
+          .insert({
+            ad_id: insertedAd.id,
+            features: otherFeatures
+          });
+
+        if (insertDetailsError) {
+          console.error('Error inserting ad details:', insertDetailsError);
+          // در صورت خطا در ثبت جزئیات، می‌توانیم آگهی را حذف کنیم یا فقط هشدار دهیم
+          // فعلاً فقط لاگ می‌کنیم چون آگهی اصلی ثبت شده است
+          toast({
+            title: "هشدار",
+            description: "آگهی ثبت شد اما برخی جزئیات ذخیره نشدند.",
+            variant: "destructive",
+          });
+        }
       }
 
       onAdCreated();

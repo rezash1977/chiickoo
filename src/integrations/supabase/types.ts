@@ -211,6 +211,35 @@ export type Database = {
           }
         ];
       },
+      ad_details: {
+        Row: {
+          id: string
+          ad_id: string
+          features: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          ad_id: string
+          features?: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          ad_id?: string
+          features?: Json
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_details_ad_id_fkey"
+            columns: ["ad_id"]
+            isOneToOne: false
+            referencedRelation: "ads"
+            referencedColumns: ["id"]
+          }
+        ]
+      },
     }
     Views: {
       [_ in never]: never

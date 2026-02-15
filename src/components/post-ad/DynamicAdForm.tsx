@@ -7,6 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import {
   Home,
   Building2,
@@ -29,7 +31,7 @@ interface Category {
 interface CategoryField {
   name: string;
   label: string;
-  type: 'text' | 'number' | 'select' | 'textarea' | 'checkbox' | 'price' | 'area' | 'phone';
+  type: 'text' | 'number' | 'select' | 'textarea' | 'checkbox' | 'price' | 'area' | 'phone' | 'checkbox-group';
   required: boolean;
   options?: { value: string; label: string }[];
   placeholder?: string;
@@ -52,192 +54,166 @@ interface DynamicAdFormProps {
 // تعریف فیلدهای مختلف برای هر دسته‌بندی
 const categoryConfigs: { [key: string]: CategoryField[] } = {
   apartment: [
-    { name: 'title', label: 'عنوان آگهی', type: 'text', required: true, placeholder: 'مثال: آپارتمان 2 خوابه در ونک' },
-    { name: 'price', label: 'قیمت فروش (تومان)', type: 'price', required: true },
-    { name: 'rent', label: 'اجاره ماهانه (تومان)', type: 'price', required: false },
-    { name: 'deposit', label: 'ودیعه (تومان)', type: 'price', required: false },
+    { name: 'price', label: 'قیمت کل (تومان)', type: 'price', required: true },
+    { name: 'price_per_meter', label: 'قیمت هر متر (تومان)', type: 'price', required: false },
     { name: 'area', label: 'متراژ', type: 'area', required: true, unit: 'متر مربع' },
-    { name: 'rooms', label: 'تعداد اتاق خواب', type: 'number', required: true, min: 1, max: 10 },
-    { name: 'bathrooms', label: 'تعداد سرویس بهداشتی', type: 'number', required: true, min: 1, max: 5 },
-    { name: 'floor', label: 'طبقه', type: 'number', required: false, min: -5, max: 50 },
-    { name: 'totalFloors', label: 'تعداد کل طبقات', type: 'number', required: false, min: 1, max: 50 },
-    { name: 'age', label: 'سن بنا (سال)', type: 'number', required: false, min: 0, max: 50 },
+    { name: 'rooms', label: 'تعداد اتاق خواب', type: 'number', required: true, min: 0, max: 10 },
+    { name: 'floor', label: 'طبقه', type: 'number', required: true, min: -5, max: 50 },
+    { name: 'totalFloors', label: 'تعداد کل طبقات', type: 'number', required: true, min: 1, max: 50 },
+    { name: 'unitsPerFloor', label: 'تعداد واحد در طبقه', type: 'number', required: false, min: 1, max: 20 },
+    { name: 'age', label: 'سن بنا (سال)', type: 'number', required: true, min: 0, max: 100 },
     {
-      name: 'parking', label: 'پارکینگ', type: 'select', required: false, options: [
-        { value: 'yes', label: 'دارد' },
-        { value: 'no', label: 'ندارد' }
+      name: 'document_type', label: 'نوع سند', type: 'select', required: true, options: [
+        { value: 'official', label: 'سند رسمی تک‌برگ' },
+        { value: 'cooperative', label: 'سند تعاونی' },
+        { value: 'endowment', label: 'سند اوقافی' },
+        { value: 'contract', label: 'قولنامه‌ای' }
       ]
     },
     {
-      name: 'elevator', label: 'آسانسور', type: 'select', required: false, options: [
-        { value: 'yes', label: 'دارد' },
-        { value: 'no', label: 'ندارد' }
+      name: 'direction', label: 'جهت ساختمان', type: 'select', required: false, options: [
+        { value: 'north', label: 'شمالی' },
+        { value: 'south', label: 'جنوبی' },
+        { value: 'east', label: 'شرقی' },
+        { value: 'west', label: 'غربی' },
+        { value: 'corner', label: 'دو کله' }
       ]
     },
     {
-      name: 'balcony', label: 'بالکن', type: 'select', required: false, options: [
-        { value: 'yes', label: 'دارد' },
-        { value: 'no', label: 'ندارد' }
+      name: 'floor_covering', label: 'کفپوش', type: 'select', required: false, options: [
+        { value: 'ceramic', label: 'سرامیک' },
+        { value: 'parquet', label: 'پارکت/لمینت' },
+        { value: 'stone', label: 'سنگ' },
+        { value: 'mosaic', label: 'موزاییک' }
       ]
     },
     {
-      name: 'warehouse', label: 'انباری', type: 'select', required: false, options: [
-        { value: 'yes', label: 'دارد' },
-        { value: 'no', label: 'ندارد' }
+      name: 'cabinet', label: 'کابینت', type: 'select', required: false, options: [
+        { value: 'mdf', label: 'MDF' },
+        { value: 'high_gloss', label: 'High Gloss' },
+        { value: 'membrane', label: 'Membrane' },
+        { value: 'wood', label: 'Wood' },
+        { value: 'metal', label: 'فلزی' }
       ]
     },
     {
-      name: 'cooling', label: 'سیستم سرمایشی', type: 'select', required: false, options: [
-        { value: 'split', label: 'اسپلیت' },
-        { value: 'central', label: 'مرکزی' },
-        { value: 'none', label: 'ندارد' }
+      name: 'features', label: 'امکانات', type: 'checkbox-group', required: false, options: [
+        { value: 'parking', label: 'پارکینگ' },
+        { value: 'elevator', label: 'آسانسور' },
+        { value: 'warehouse', label: 'انباری' },
+        { value: 'balcony', label: 'بالکن' },
+        { value: 'master_bedroom', label: 'خواب مستر' },
+        { value: 'lobby', label: 'لابی' },
+        { value: 'gym', label: 'سالن ورزشی' }
       ]
     },
-    {
-      name: 'heating', label: 'سیستم گرمایشی', type: 'select', required: false, options: [
-        { value: 'radiator', label: 'رادیاتور' },
-        { value: 'floor', label: 'گرمایش از کف' },
-        { value: 'none', label: 'ندارد' }
-      ]
-    },
-    { name: 'location', label: 'موقعیت مکانی', type: 'text', required: true, placeholder: 'مثال: ونک، خیابان ولیعصر' },
-    { name: 'description', label: 'توضیحات', type: 'textarea', required: true, placeholder: 'توضیحات کامل آگهی را اینجا بنویسید...' },
+    { name: 'location', label: 'موقعیت مکانی', type: 'text', required: true, placeholder: 'مثال: تهران، ونک...' },
     { name: 'phone', label: 'شماره تماس', type: 'phone', required: true }
   ],
 
   villa: [
-    { name: 'title', label: 'عنوان آگهی', type: 'text', required: true, placeholder: 'مثال: ویلا 3 خوابه در لواسان' },
-    { name: 'price', label: 'قیمت فروش (تومان)', type: 'price', required: true },
-    { name: 'rent', label: 'اجاره ماهانه (تومان)', type: 'price', required: false },
-    { name: 'deposit', label: 'ودیعه (تومان)', type: 'price', required: false },
+    { name: 'price', label: 'قیمت کل (تومان)', type: 'price', required: true },
     { name: 'area', label: 'متراژ زمین', type: 'area', required: true, unit: 'متر مربع' },
-    { name: 'buildingArea', label: 'متراژ زیربنا', type: 'area', required: true, unit: 'متر مربع' },
-    { name: 'rooms', label: 'تعداد اتاق خواب', type: 'number', required: true, min: 1, max: 10 },
-    { name: 'bathrooms', label: 'تعداد سرویس بهداشتی', type: 'number', required: true, min: 1, max: 5 },
-    { name: 'floors', label: 'تعداد طبقات', type: 'number', required: true, min: 1, max: 5 },
-    { name: 'age', label: 'سن بنا (سال)', type: 'number', required: false, min: 0, max: 50 },
+    { name: 'buildingArea', label: 'متراژ بنا', type: 'area', required: true, unit: 'متر مربع' },
+    { name: 'rooms', label: 'تعداد اتاق خواب', type: 'number', required: true, min: 0, max: 20 },
+    { name: 'age', label: 'سن بنا (سال)', type: 'number', required: true, min: 0, max: 100 },
     {
-      name: 'parking', label: 'پارکینگ', type: 'select', required: false, options: [
-        { value: 'yes', label: 'دارد' },
-        { value: 'no', label: 'ندارد' }
+      name: 'document_type', label: 'نوع سند', type: 'select', required: true, options: [
+        { value: 'official', label: 'سند رسمی تک‌برگ' },
+        { value: 'contract', label: 'قولنامه‌ای' },
+        { value: 'shorayi', label: 'سند شورای' }
       ]
     },
     {
-      name: 'garden', label: 'باغچه', type: 'select', required: false, options: [
-        { value: 'yes', label: 'دارد' },
-        { value: 'no', label: 'ندارد' }
+      name: 'features', label: 'امکانات', type: 'checkbox-group', required: false, options: [
+        { value: 'pool', label: 'استخر' },
+        { value: 'sauna', label: 'سونا' },
+        { value: 'jacuzzi', label: 'جکوزی' },
+        { value: 'parking', label: 'پارکینگ' },
+        { value: 'warehouse', label: 'انباری' },
+        { value: 'balcony', label: 'تراس/بالکن' },
+        { value: 'security', label: 'سرایداری/نگهبانی' }
       ]
     },
-    {
-      name: 'pool', label: 'استخر', type: 'select', required: false, options: [
-        { value: 'yes', label: 'دارد' },
-        { value: 'no', label: 'ندارد' }
-      ]
-    },
-    { name: 'location', label: 'موقعیت مکانی', type: 'text', required: true, placeholder: 'مثال: لواسان، جاده فشم' },
-    { name: 'description', label: 'توضیحات', type: 'textarea', required: true, placeholder: 'توضیحات کامل آگهی را اینجا بنویسید...' },
+    { name: 'location', label: 'موقعیت مکانی', type: 'text', required: true },
     { name: 'phone', label: 'شماره تماس', type: 'phone', required: true }
   ],
 
   office: [
-    { name: 'title', label: 'عنوان آگهی', type: 'text', required: true, placeholder: 'مثال: دفتر اداری در مرکز شهر' },
-    { name: 'price', label: 'قیمت فروش (تومان)', type: 'price', required: true },
-    { name: 'rent', label: 'اجاره ماهانه (تومان)', type: 'price', required: false },
-    { name: 'deposit', label: 'ودیعه (تومان)', type: 'price', required: false },
+    { name: 'price', label: 'قیمت کل (تومان)', type: 'price', required: true },
     { name: 'area', label: 'متراژ', type: 'area', required: true, unit: 'متر مربع' },
-    { name: 'rooms', label: 'تعداد اتاق', type: 'number', required: true, min: 1, max: 20 },
-    { name: 'floor', label: 'طبقه', type: 'number', required: false, min: -5, max: 50 },
-    { name: 'totalFloors', label: 'تعداد کل طبقات', type: 'number', required: false, min: 1, max: 50 },
-    { name: 'age', label: 'سن بنا (سال)', type: 'number', required: false, min: 0, max: 50 },
+    { name: 'rooms', label: 'تعداد اتاق', type: 'number', required: true, min: 0, max: 20 },
+    { name: 'floor', label: 'طبقه', type: 'number', required: true, min: -5, max: 50 },
+    { name: 'age', label: 'سن بنا (سال)', type: 'number', required: true, min: 0, max: 100 },
     {
-      name: 'parking', label: 'پارکینگ', type: 'select', required: false, options: [
-        { value: 'yes', label: 'دارد' },
-        { value: 'no', label: 'ندارد' }
+      name: 'document_type', label: 'نوع سند', type: 'select', required: true, options: [
+        { value: 'official_office', label: 'سند اداری' },
+        { value: 'official_residential', label: 'سند مسکونی (موقعیت اداری)' },
+        { value: 'contract', label: 'قولنامه‌ای' }
       ]
     },
     {
-      name: 'elevator', label: 'آسانسور', type: 'select', required: false, options: [
-        { value: 'yes', label: 'دارد' },
-        { value: 'no', label: 'ندارد' }
+      name: 'features', label: 'امکانات', type: 'checkbox-group', required: false, options: [
+        { value: 'parking', label: 'پارکینگ' },
+        { value: 'elevator', label: 'آسانسور' },
+        { value: 'warehouse', label: 'انباری' },
+        { value: 'lobby_man', label: 'لابی من' },
+        { value: 'security', label: 'نگهبانی' }
       ]
     },
-    {
-      name: 'security', label: 'نگهبان', type: 'select', required: false, options: [
-        { value: 'yes', label: 'دارد' },
-        { value: 'no', label: 'ندارد' }
-      ]
-    },
-    { name: 'location', label: 'موقعیت مکانی', type: 'text', required: true, placeholder: 'مثال: مرکز شهر، خیابان ولیعصر' },
-    { name: 'description', label: 'توضیحات', type: 'textarea', required: true, placeholder: 'توضیحات کامل آگهی را اینجا بنویسید...' },
+    { name: 'location', label: 'موقعیت مکانی', type: 'text', required: true },
     { name: 'phone', label: 'شماره تماس', type: 'phone', required: true }
   ],
 
   shop: [
-    { name: 'title', label: 'عنوان آگهی', type: 'text', required: true, placeholder: 'مثال: مغازه در مرکز خرید' },
-    { name: 'price', label: 'قیمت فروش (تومان)', type: 'price', required: true },
-    { name: 'rent', label: 'اجاره ماهانه (تومان)', type: 'price', required: false },
-    { name: 'deposit', label: 'ودیعه (تومان)', type: 'price', required: false },
-    { name: 'area', label: 'متراژ', type: 'area', required: true, unit: 'متر مربع' },
-    { name: 'floor', label: 'طبقه', type: 'number', required: false, min: -5, max: 10 },
-    { name: 'age', label: 'سن بنا (سال)', type: 'number', required: false, min: 0, max: 50 },
+    { name: 'price', label: 'قیمت کل (تومان)', type: 'price', required: true },
+    { name: 'area', label: 'متراژ کف', type: 'area', required: true, unit: 'متر مربع' },
+    { name: 'balcony_area', label: 'متراژ بالکن', type: 'area', required: false, unit: 'متر مربع' },
+    { name: 'height', label: 'ارتفاع سقف (متر)', type: 'number', required: true, min: 2, max: 10 },
+    { name: 'width', label: 'بر مغازه (متر)', type: 'number', required: true, min: 1, max: 50 },
+    { name: 'age', label: 'سن بنا (سال)', type: 'number', required: true, min: 0, max: 100 },
     {
-      name: 'parking', label: 'پارکینگ', type: 'select', required: false, options: [
-        { value: 'yes', label: 'دارد' },
-        { value: 'no', label: 'ندارد' }
+      name: 'document_type', label: 'نوع سند', type: 'select', required: true, options: [
+        { value: 'official_commercial', label: 'سند تجاری' },
+        { value: 'serghofli', label: 'سرقفلی' },
+        { value: 'contract', label: 'قولنامه‌ای' }
       ]
     },
-    {
-      name: 'warehouse', label: 'انباری', type: 'select', required: false, options: [
-        { value: 'yes', label: 'دارد' },
-        { value: 'no', label: 'ندارد' }
-      ]
-    },
-    { name: 'location', label: 'موقعیت مکانی', type: 'text', required: true, placeholder: 'مثال: مرکز خرید، خیابان ولیعصر' },
-    { name: 'description', label: 'توضیحات', type: 'textarea', required: true, placeholder: 'توضیحات کامل آگهی را اینجا بنویسید...' },
+    { name: 'location', label: 'موقعیت مکانی', type: 'text', required: true },
     { name: 'phone', label: 'شماره تماس', type: 'phone', required: true }
   ],
 
   land: [
-    { name: 'title', label: 'عنوان آگهی', type: 'text', required: true, placeholder: 'مثال: زمین مسکونی در لواسان' },
-    { name: 'price', label: 'قیمت فروش (تومان)', type: 'price', required: true },
+    { name: 'price', label: 'قیمت کل (تومان)', type: 'price', required: true },
     { name: 'area', label: 'متراژ زمین', type: 'area', required: true, unit: 'متر مربع' },
-    { name: 'width', label: 'عرض زمین (متر)', type: 'number', required: false, min: 1, max: 1000 },
+    { name: 'width', label: 'بر زمین (متر)', type: 'number', required: true, min: 1, max: 1000 },
     { name: 'length', label: 'طول زمین (متر)', type: 'number', required: false, min: 1, max: 1000 },
     {
-      name: 'usage', label: 'نوع کاربری', type: 'select', required: true, options: [
+      name: 'usage', label: 'کاربری', type: 'select', required: true, options: [
         { value: 'residential', label: 'مسکونی' },
         { value: 'commercial', label: 'تجاری' },
         { value: 'agricultural', label: 'کشاورزی' },
-        { value: 'industrial', label: 'صنعتی' }
+        { value: 'industrial', label: 'صنعتی' },
+        { value: 'garden', label: 'باغ' }
       ]
     },
     {
-      name: 'access', label: 'دسترسی', type: 'select', required: false, options: [
-        { value: 'asphalt', label: 'آسفالت' },
-        { value: 'dirt', label: 'خاکی' },
-        { value: 'none', label: 'ندارد' }
+      name: 'document_type', label: 'نوع سند', type: 'select', required: true, options: [
+        { value: 'official', label: 'سند تک‌برگ' },
+        { value: 'contract', label: 'قولنامه‌ای' },
+        { value: 'shorayi', label: 'سند شورای' },
+        { value: 'moshaa', label: 'مشاع' }
       ]
     },
     {
-      name: 'water', label: 'آب', type: 'select', required: false, options: [
-        { value: 'yes', label: 'دارد' },
-        { value: 'no', label: 'ندارد' }
+      name: 'features', label: 'امکانات / انشعابات', type: 'checkbox-group', required: false, options: [
+        { value: 'water', label: 'آب' },
+        { value: 'electricity', label: 'برق' },
+        { value: 'gas', label: 'گاز' },
+        { value: 'fence', label: 'دیوارکشی/فنس' }
       ]
     },
-    {
-      name: 'electricity', label: 'برق', type: 'select', required: false, options: [
-        { value: 'yes', label: 'دارد' },
-        { value: 'no', label: 'ندارد' }
-      ]
-    },
-    {
-      name: 'gas', label: 'گاز', type: 'select', required: false, options: [
-        { value: 'yes', label: 'دارد' },
-        { value: 'no', label: 'ندارد' }
-      ]
-    },
-    { name: 'location', label: 'موقعیت مکانی', type: 'text', required: true, placeholder: 'مثال: لواسان، جاده فشم' },
-    { name: 'description', label: 'توضیحات', type: 'textarea', required: true, placeholder: 'توضیحات کامل آگهی را اینجا بنویسید...' },
+    { name: 'location', label: 'موقعیت مکانی', type: 'text', required: true },
     { name: 'phone', label: 'شماره تماس', type: 'phone', required: true }
   ]
 };
@@ -427,6 +403,30 @@ const DynamicAdForm: React.FC<DynamicAdFormProps> = ({
           />
         );
 
+      case 'checkbox-group':
+        const selectedValues = Array.isArray(value) ? value : [];
+        return (
+          <div className="grid grid-cols-2 gap-4">
+            {field.options?.map((option) => (
+              <div key={option.value} className="flex items-center space-x-2 space-x-reverse">
+                <Checkbox
+                  id={`${field.name}-${option.value}`}
+                  checked={selectedValues.includes(option.value)}
+                  onCheckedChange={(checked) => {
+                    const newValues = checked
+                      ? [...selectedValues, option.value]
+                      : selectedValues.filter((v: string) => v !== option.value);
+                    updateFormData({ [field.name]: newValues });
+                  }}
+                />
+                <Label htmlFor={`${field.name}-${option.value}`} className="text-sm cursor-pointer">
+                  {option.label}
+                </Label>
+              </div>
+            ))}
+          </div>
+        );
+
       default:
         return null;
     }
@@ -458,8 +458,8 @@ const DynamicAdForm: React.FC<DynamicAdFormProps> = ({
                   key={cat.id}
                   onClick={() => updateFormData({ category: cat.slug })}
                   className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md ${(category || formData.category) === cat.slug
-                      ? 'border-primary bg-primary/5'
-                      : 'border-gray-200 hover:border-primary/50'
+                    ? 'border-primary bg-primary/5'
+                    : 'border-gray-200 hover:border-primary/50'
                     }`}
                 >
                   <div className="flex flex-col items-center gap-2 text-center">
