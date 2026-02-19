@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnreadMessagesCount } from '@/hooks/useUnreadMessagesCount';
 import { useFavorites } from '@/hooks/useFavorites';
+import LoginForm from '@/pages/Loginform'; 
 
 const Navbar: React.FC = () => {
   const { user, signOut } = useAuth();
@@ -14,6 +15,7 @@ const Navbar: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const unreadCount = useUnreadMessagesCount(user?.id);
   const { favorites } = useFavorites();
+  const [showLogin, setShowLogin] = useState(false);
 
   // Check if user is admin
   useEffect(() => {
@@ -71,11 +73,15 @@ const Navbar: React.FC = () => {
         <div className="flex justify-around items-center">
           {/* ورود و ثبت‌نام */}
           {!user && (
-            <Link to="/login" className="flex flex-col items-center text-gray-600 hover:text-violet-600">
-              <User size={20} className="text-fuchsia-600" />
-              <span className="text-xs mt-1">ورود</span>
-            </Link>
-          )}
+  <button
+    onClick={() => setShowLogin(true)}
+    className="flex flex-col items-center text-gray-600 hover:text-violet-600"
+  >
+    <User size={20} className="text-fuchsia-600" />
+    <span className="text-xs mt-1">ورود</span>
+  </button>
+)}
+
           {!user && (
             <Link to="/register" className="flex flex-col items-center text-gray-600 hover:text-violet-600">
               <UserPlus size={20} className="text-violet-600" />

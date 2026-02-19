@@ -12,7 +12,6 @@ import AdDetailPage from "./pages/AdDetailPage";
 import AccountPage from "./pages/AccountPage";
 import PostAdPage from "./pages/PostAdPage";
 import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import MyAdsPage from "./pages/MyAdsPage";
@@ -40,7 +39,6 @@ const App = () => {
               <Route path="/account" element={<AccountPage />} />
               <Route path="/post-ad" element={<PostAdPage />} />
               <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
               <Route path="/admin" element={
                 <ErrorBoundary>
                   <AdminDashboard />

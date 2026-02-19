@@ -98,10 +98,7 @@ const Header: React.FC = () => {
                   <User size={24} className="text-fuchsia-600" />
                   <span className="text-xs mt-1">ورود</span>
                 </Link>
-                <Link to="/register" className="flex flex-col items-center text-gray-600 hover:text-violet-600">
-                  <UserPlus size={24} className="text-violet-600" />
-                  <span className="text-xs mt-1">ثبت‌نام</span>
-                </Link>
+
               </>
             ) : (
               <>
