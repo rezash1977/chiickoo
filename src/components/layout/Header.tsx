@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import SearchBar from '../search/SearchBar';
-import { User, Plus, UserPlus, Settings, LogOut, Heart, ChevronDown } from 'lucide-react';
+import { User, Plus, Settings, LogOut, Heart, Menu, X, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -14,6 +14,8 @@ const Header: React.FC = () => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   const [isAdmin, setIsAdmin] = React.useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [categoryOpen, setCategoryOpen] = useState(false);
   const unreadCount = useUnreadMessagesCount(user?.id);
   const { favorites } = useFavorites();
   const { data: categories, isLoading: categoriesLoading } = useCategories();
@@ -28,12 +30,8 @@ const Header: React.FC = () => {
             .eq('user_id', user.id)
             .eq('role', 'admin')
             .single();
-          if (data && !error) {
-            setIsAdmin(true);
-          } else {
-            setIsAdmin(false);
-          }
-        } catch (error) {
+          setIsAdmin(!!(data && !error));
+        } catch {
           setIsAdmin(false);
         }
       } else {
@@ -51,7 +49,7 @@ const Header: React.FC = () => {
         description: "شما با موفقیت از حساب خود خارج شدید",
         variant: "default",
       });
-    } catch (error) {
+    } catch {
       toast({
         title: "خطا در خروج",
         description: "خطایی در خروج از حساب رخ داد",
@@ -61,87 +59,150 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white py-4 mb-6 shadow-md">
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4 md:gap-6">
-          <Link to="/" className="text-2xl font-bold text-violet-600 mb-2 md:mb-0">چی کو</Link>
-          <div className="relative mx-0 md:mx-2 w-full md:w-auto mb-2 md:mb-0">
-            <button className="flex items-center gap-1 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors w-full md:w-auto" type="button">
-              دسته بندی ها
-              <ChevronDown size={18} />
-            </button>
-            <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 hidden group-hover:block hover:block">
-              {categoriesLoading ? (
-                <div className="p-4 text-center text-gray-400">در حال بارگذاری...</div>
-              ) : categories && categories.length > 0 ? (
-                <ul className="py-2">
-                  {categories.map(cat => (
-                    <li key={cat.id}>
-                      <Link to={`/category/${cat.slug}`} className="block px-4 py-2 hover:bg-gray-100 text-gray-700">
-                        {cat.name}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="p-4 text-center text-gray-400">دسته‌بندی‌ای یافت نشد</div>
-              )}
-            </div>
-          </div>
-          <div className="w-full md:flex-1 md:mx-6">
+    <header className="sticky top-0 z-50 bg-white shadow-md" dir="rtl">
+      {/* ردیف اصلی هدر */}
+      <div className="container mx-auto px-3 md:px-4 py-2 md:py-3">
+        <div className="flex items-center gap-2 md:gap-4">
+
+          {/* لوگو */}
+          <Link to="/" className="text-xl md:text-2xl font-bold text-violet-600 whitespace-nowrap flex-shrink-0">
+            چی کو
+          </Link>
+
+          {/* سرچ - همیشه نمایش داده می‌شود */}
+          <div className="flex-1 min-w-0">
             <SearchBar className="w-full" />
           </div>
-          <div className="hidden md:flex items-center gap-8">
-            {!user ? (
-              <>
-                <Link to="/login" className="flex flex-col items-center text-gray-600 hover:text-violet-600">
-                  <User size={24} className="text-fuchsia-600" />
-                  <span className="text-xs mt-1">ورود</span>
-                </Link>
 
-              </>
+          {/* دسته‌بندی - فقط دسکتاپ */}
+          <div className="hidden md:block relative flex-shrink-0">
+            <button
+              onClick={() => setCategoryOpen(!categoryOpen)}
+              className="flex items-center gap-1 px-3 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+              type="button"
+            >
+              دسته‌بندی‌ها
+              <ChevronDown size={16} className={`transition-transform ${categoryOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {categoryOpen && (
+              <div className="absolute right-0 top-full mt-1 w-52 bg-white border border-gray-200 rounded-lg shadow-xl z-50">
+                {categoriesLoading ? (
+                  <div className="p-4 text-center text-gray-400 text-sm">در حال بارگذاری...</div>
+                ) : categories && categories.length > 0 ? (
+                  <ul className="py-1 max-h-64 overflow-y-auto">
+                    {categories.map(cat => (
+                      <li key={cat.id}>
+                        <Link
+                          to={`/category/${cat.slug}`}
+                          className="block px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm"
+                          onClick={() => setCategoryOpen(false)}
+                        >
+                          {cat.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="p-4 text-center text-gray-400 text-sm">دسته‌بندی‌ای یافت نشد</div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* آیکون‌های دسکتاپ */}
+          <div className="hidden md:flex items-center gap-5 flex-shrink-0">
+            {!user ? (
+              <Link to="/login" className="flex flex-col items-center text-gray-600 hover:text-violet-600">
+                <User size={22} className="text-fuchsia-600" />
+                <span className="text-xs mt-0.5">ورود</span>
+              </Link>
             ) : (
               <>
                 <NotificationCenter />
                 <Link to="/account" className="flex flex-col items-center relative text-gray-600 hover:text-violet-600">
-                  <User size={24} className="text-fuchsia-600" />
+                  <User size={22} className="text-fuchsia-600" />
                   {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-2 bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5">
-                      {unreadCount}
+                    <span className="absolute -top-1 -right-2 bg-red-600 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center">
+                      {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                   )}
-                  <span className="text-xs mt-1">حساب من</span>
+                  <span className="text-xs mt-0.5">حساب من</span>
                 </Link>
                 <Link to="/favorites" className="flex flex-col items-center relative text-gray-600 hover:text-violet-600">
-                  <Heart size={24} className="text-red-500" />
+                  <Heart size={22} className="text-red-500" />
                   {favorites.length > 0 && (
-                    <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">
-                      {favorites.length > 99 ? '99+' : favorites.length}
+                    <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center">
+                      {favorites.length > 9 ? '9+' : favorites.length}
                     </span>
                   )}
-                  <span className="text-xs mt-1">نشان شده</span>
+                  <span className="text-xs mt-0.5">نشان‌ها</span>
                 </Link>
                 <button onClick={handleSignOut} className="flex flex-col items-center text-gray-600 hover:text-violet-600">
-                  <LogOut size={24} className="text-violet-600" />
-                  <span className="text-xs mt-1">خروج</span>
+                  <LogOut size={22} className="text-violet-600" />
+                  <span className="text-xs mt-0.5">خروج</span>
                 </button>
+                {isAdmin && (
+                  <Link to="/admin" className="flex flex-col items-center text-gray-600 hover:text-violet-600">
+                    <Settings size={22} className="text-gray-600" />
+                    <span className="text-xs mt-0.5">مدیریت</span>
+                  </Link>
+                )}
               </>
             )}
-            <Link to="/post-ad" className="flex items-center">
-              <button className="flex items-center gap-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-lg px-4 py-2 text-white shadow-lg">
-                <Plus size={24} />
-                <span className="text-base font-medium">ثبت آگهی</span>
+            <Link to="/post-ad">
+              <button className="flex items-center gap-1.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-lg px-3 py-2 text-white shadow-md text-sm font-medium whitespace-nowrap">
+                <Plus size={18} />
+                ثبت آگهی
               </button>
             </Link>
-            {isAdmin && (
-              <Link to="/admin" className="flex flex-col items-center text-gray-600 hover:text-violet-600">
-                <Settings size={24} className="text-primary" />
-                <span className="text-xs mt-1">مدیریت</span>
-              </Link>
-            )}
           </div>
+
+          {/* همبرگر منو - فقط موبایل */}
+          <button
+            className="md:hidden flex-shrink-0 p-1.5 rounded-lg hover:bg-gray-100"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="منو"
+          >
+            {mobileMenuOpen ? <X size={22} className="text-gray-600" /> : <Menu size={22} className="text-gray-600" />}
+          </button>
         </div>
       </div>
+
+      {/* منوی موبایل - کشویی */}
+      {mobileMenuOpen && (
+        <div
+          className="md:hidden bg-white border-t border-gray-100 px-4 py-3 space-y-2 shadow-lg"
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          {/* دسته‌بندی‌ها */}
+          <div className="border-b border-gray-100 pb-2 mb-2">
+            <p className="text-xs font-semibold text-gray-400 mb-1.5 px-1">دسته‌بندی‌ها</p>
+            {categoriesLoading ? (
+              <p className="text-sm text-gray-400 px-1">در حال بارگذاری...</p>
+            ) : (
+              <div className="grid grid-cols-3 gap-1">
+                {categories?.slice(0, 9).map(cat => (
+                  <Link
+                    key={cat.id}
+                    to={`/category/${cat.slug}`}
+                    className="text-sm text-gray-700 bg-gray-50 rounded-md px-2 py-1.5 text-center truncate hover:bg-violet-50 hover:text-violet-600"
+                  >
+                    {cat.name}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <Link
+            to="/post-ad"
+            className="flex items-center gap-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-lg px-4 py-2.5 text-white font-medium w-full justify-center"
+          >
+            <Plus size={18} />
+            ثبت آگهی جدید
+          </Link>
+        </div>
+      )}
     </header>
   );
 };

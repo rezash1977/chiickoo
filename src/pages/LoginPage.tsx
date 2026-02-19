@@ -59,24 +59,32 @@ const LoginPage: React.FC = () => {
 
   const onPhoneSubmit = async (data: z.infer<typeof phoneSchema>) => {
     setIsLoading(true);
+    console.log("Submitting phone:", data.phone);
     try {
       // Convert 09xx to +989xx standard format
       const formattedPhone = data.phone.replace(/^0/, '+98');
+      console.log("Formatted phone:", formattedPhone);
 
-      const { error } = await supabase.auth.signInWithOtp({
+      const { data: responseData, error } = await supabase.auth.signInWithOtp({
         phone: formattedPhone,
+        options: {
+          channel: 'sms'
+        }
       });
+
+      console.log("SignInWithOtp result:", { responseData, error });
 
       if (error) {
         console.error('OTP Send error:', error);
         toast({
           title: "خطا در ارسال کد",
-          description: error.message,
+          description: error.message || "خطایی رخ داد",
           variant: "destructive",
         });
         return;
       }
 
+      console.log("OTP sent successfully, switching to OTP step");
       setPhone(data.phone);
       setStep('OTP');
       setTimer(60);
@@ -86,7 +94,7 @@ const LoginPage: React.FC = () => {
         variant: "default",
       });
     } catch (error) {
-      console.error('Unexpected error:', error);
+      console.error('Unexpected error in onPhoneSubmit:', error);
       toast({
         title: "خطا",
         description: "خطای غیرمنتظره‌ای رخ داد",

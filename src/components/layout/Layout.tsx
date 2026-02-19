@@ -12,7 +12,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   const handleRenewAd = async (adId: string) => {
     setRenewingAds(prev => new Set(prev).add(adId));
-    
+
     try {
       await renewAd(adId);
       toast({
@@ -37,12 +37,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-grow bg-gray-50">
+      <main className="flex-grow bg-gray-50 pb-20 md:pb-0">
         {children}
       </main>
       {/* <Navbar /> */}
       <Navbar />
-      
+
       {/* Global Notification System */}
       <NotificationSystem
         onRenewAd={handleRenewAd}
