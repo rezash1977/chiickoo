@@ -84,6 +84,11 @@ const AdDetailPage: React.FC = () => {
       localStorage.setItem(`note_${user.id}_${adId}`, e.target.value);
     }
   };
+  function formatIranPhone(phone: string) {
+    return phone
+      .replace(/^98/, "0")
+      .replace(/^\+98/, "0");
+  }
 
   React.useEffect(() => {
     const fetchAd = async () => {
@@ -392,7 +397,7 @@ const AdDetailPage: React.FC = () => {
                   }}
                 >
                   <Phone className="w-5 h-5 ml-2" />
-                  {phoneVisible ? ad.phone : 'اطلاعات تماس'}
+                  {phoneVisible ? formatIranPhone(ad.phone) : 'اطلاعات تماس'}
                 </button>
                 <button
                   className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg flex items-center justify-center hover:bg-gray-200 transition-colors font-bold"
