@@ -13,6 +13,7 @@ import {
   Home,
   Building2,
   Store,
+  Warehouse,
   MapPin,
   Square,
   DollarSign,
@@ -107,8 +108,7 @@ const categoryConfigs: { [key: string]: CategoryField[] } = {
         { value: 'gym', label: 'سالن ورزشی' }
       ]
     },
-    { name: 'location', label: 'موقعیت مکانی', type: 'text', required: true, placeholder: 'مثال: تهران، ونک...' },
-    { name: 'phone', label: 'شماره تماس', type: 'phone', required: true }
+    { name: 'location', label: 'موقعیت مکانی', type: 'text', required: true, placeholder: 'مثال: تهران، ونک...' }
   ],
 
   villa: [
@@ -135,8 +135,7 @@ const categoryConfigs: { [key: string]: CategoryField[] } = {
         { value: 'security', label: 'سرایداری/نگهبانی' }
       ]
     },
-    { name: 'location', label: 'موقعیت مکانی', type: 'text', required: true },
-    { name: 'phone', label: 'شماره تماس', type: 'phone', required: true }
+    { name: 'location', label: 'موقعیت مکانی', type: 'text', required: true }
   ],
 
   office: [
@@ -161,8 +160,7 @@ const categoryConfigs: { [key: string]: CategoryField[] } = {
         { value: 'security', label: 'نگهبانی' }
       ]
     },
-    { name: 'location', label: 'موقعیت مکانی', type: 'text', required: true },
-    { name: 'phone', label: 'شماره تماس', type: 'phone', required: true }
+    { name: 'location', label: 'موقعیت مکانی', type: 'text', required: true }
   ],
 
   shop: [
@@ -179,8 +177,7 @@ const categoryConfigs: { [key: string]: CategoryField[] } = {
         { value: 'contract', label: 'قولنامه‌ای' }
       ]
     },
-    { name: 'location', label: 'موقعیت مکانی', type: 'text', required: true },
-    { name: 'phone', label: 'شماره تماس', type: 'phone', required: true }
+    { name: 'location', label: 'موقعیت مکانی', type: 'text', required: true }
   ],
 
   land: [
@@ -213,19 +210,73 @@ const categoryConfigs: { [key: string]: CategoryField[] } = {
         { value: 'fence', label: 'دیوارکشی/فنس' }
       ]
     },
-    { name: 'location', label: 'موقعیت مکانی', type: 'text', required: true },
-    { name: 'phone', label: 'شماره تماس', type: 'phone', required: true }
+    { name: 'location', label: 'موقعیت مکانی', type: 'text', required: true }
+  ],
+  cars: [
+    { name: 'price', label: 'قیمت (تومان)', type: 'price', required: true },
+    { name: 'brand', label: 'برند و مدل', type: 'text', required: true },
+    { name: 'year', label: 'سال تولید', type: 'number', required: true, min: 1350, max: 1403 },
+    { name: 'mileage', label: 'کارکرد (کیلومتر)', type: 'number', required: true, min: 0 },
+    {
+      name: 'color', label: 'رنگ', type: 'select', required: false, options: [
+        { value: 'white', label: 'سفید' },
+        { value: 'black', label: 'مشکی' },
+        { value: 'silver', label: 'نقره‌ای' },
+        { value: 'gray', label: 'خاکستری' },
+        { value: 'blue', label: 'آبی' },
+        { value: 'red', label: 'قرمز' }
+      ]
+    },
+    { name: 'location', label: 'موقعیت مکانی', type: 'text', required: true }
+  ],
+
+  generic: [
+    { name: 'price', label: 'قیمت (تومان)', type: 'price', required: true },
+    { name: 'location', label: 'موقعیت مکانی', type: 'text', required: true }
   ]
 };
 
+// نگاشت دسته‌بندی‌های اصلی به تنظیمات
+categoryConfigs['realestate'] = categoryConfigs['apartment'];
+categoryConfigs['cars'] = categoryConfigs['cars'];
+categoryConfigs['services'] = categoryConfigs['generic'];
+categoryConfigs['electronics'] = categoryConfigs['generic'];
+categoryConfigs['furniture'] = categoryConfigs['generic'];
+categoryConfigs['jobs'] = categoryConfigs['generic'];
+
+categoryConfigs['shop_rent'] = categoryConfigs['shop'];
+categoryConfigs['shop_sale'] = categoryConfigs['shop'];
+categoryConfigs['office_rent'] = categoryConfigs['office'];
+categoryConfigs['apartment_rent'] = categoryConfigs['apartment'];
+categoryConfigs['apartment_sale'] = categoryConfigs['apartment'];
+categoryConfigs['villa_rent'] = categoryConfigs['villa'];
+categoryConfigs['villa_sale'] = categoryConfigs['villa'];
+categoryConfigs['industrial'] = categoryConfigs['shop'];
+
+
 const getCategoryIcon = (slug: string) => {
   switch (slug) {
-    case 'apartment': return <Home className="w-5 h-5" />;
-    case 'villa': return <Building2 className="w-5 h-5" />;
-    case 'office': return <Building2 className="w-5 h-5" />;
-    case 'shop': return <Store className="w-5 h-5" />;
-    case 'land': return <MapPin className="w-5 h-5" />;
-    default: return <Home className="w-5 h-5" />;
+    case 'apartment':
+    case 'apartment_rent':
+    case 'apartment_sale':
+      return <Home className="w-5 h-5" />;
+    case 'villa':
+    case 'villa_rent':
+    case 'villa_sale':
+      return <Building2 className="w-5 h-5" />;
+    case 'office':
+    case 'office_rent':
+      return <Building2 className="w-5 h-5" />;
+    case 'shop':
+    case 'shop_rent':
+    case 'shop_sale':
+      return <Store className="w-5 h-5" />;
+    case 'industrial':
+      return <Warehouse className="w-5 h-5" />;
+    case 'land':
+      return <MapPin className="w-5 h-5" />;
+    default:
+      return <Home className="w-5 h-5" />;
   }
 };
 
@@ -238,6 +289,17 @@ const getFieldIcon = (type: string) => {
     case 'textarea': return <FileText className="w-4 h-4" />;
     default: return <FileText className="w-4 h-4" />;
   }
+};
+
+const toEnglishDigits = (str: string) => {
+  const persianDigits = [/۰/g, /۱/g, /۲/g, /۳/g, /۴/g, /۵/g, /۶/g, /۷/g, /۸/g, /۹/g];
+  const arabicDigits = [/٠/g, /١/g, /٢/g, /٣/g, /٤/g, /٥/g, /٦/g, /٧/g, /٨/g, /٩/g];
+  if (typeof str === 'string') {
+    for (let i = 0; i < 10; i++) {
+      str = str.replace(persianDigits[i], i.toString()).replace(arabicDigits[i], i.toString());
+    }
+  }
+  return str;
 };
 
 const DynamicAdForm: React.FC<DynamicAdFormProps> = ({
@@ -290,7 +352,7 @@ const DynamicAdForm: React.FC<DynamicAdFormProps> = ({
   }, [toast]);
 
   const activeCategory = category || formData.category;
-  const currentFields = activeCategory ? categoryConfigs[activeCategory] || [] : [];
+  const currentFields = activeCategory ? (categoryConfigs[activeCategory] || categoryConfigs['generic'] || []) : [];
 
   // Debug: Log current category and fields
   console.log('Current category:', activeCategory);
@@ -302,7 +364,17 @@ const DynamicAdForm: React.FC<DynamicAdFormProps> = ({
     const isRequired = field.required && !value;
 
     const handleChange = (newValue: string) => {
-      updateFormData({ [field.name]: newValue });
+      // تبدیل اعداد فارسی به انگلیسی برای فیلدهای عددی
+      let processedValue = newValue;
+      if (['number', 'price', 'area', 'phone'].includes(field.type)) {
+        processedValue = toEnglishDigits(newValue);
+      }
+
+      // ادغام با بقیه فیلدها برای جلوگیری از پاک شدن بقیه اطلاعات
+      updateFormData({
+        ...formData,
+        [field.name]: processedValue
+      });
     };
 
     switch (field.type) {
@@ -319,12 +391,11 @@ const DynamicAdForm: React.FC<DynamicAdFormProps> = ({
       case 'number':
         return (
           <Input
-            type="number"
+            type="text"
+            inputMode="numeric"
             value={value}
             onChange={(e) => handleChange(e.target.value)}
             placeholder={field.placeholder}
-            min={field.min}
-            max={field.max}
             className={isRequired ? 'border-red-500' : ''}
           />
         );
@@ -334,12 +405,16 @@ const DynamicAdForm: React.FC<DynamicAdFormProps> = ({
           <div className="relative">
             <DollarSign className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
-              type="number"
+              type="text"
+              inputMode="numeric"
               value={value}
               onChange={(e) => handleChange(e.target.value)}
               placeholder="0"
-              className={`pr-10 ${isRequired ? 'border-red-500' : ''}`}
+              className={`pr-10 pl-16 ${isRequired ? 'border-red-500' : ''}`}
             />
+            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sm text-gray-500 font-bold">
+              تومان
+            </span>
           </div>
         );
 
@@ -348,7 +423,8 @@ const DynamicAdForm: React.FC<DynamicAdFormProps> = ({
           <div className="relative">
             <Square className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
-              type="number"
+              type="text"
+              inputMode="numeric"
               value={value}
               onChange={(e) => handleChange(e.target.value)}
               placeholder="0"

@@ -26,36 +26,38 @@ import AdDetailGallery from '../components/ui/AdDetailGallery';
 // ---
 
 interface AdDetail {
-  id: number;
+  id: string;
   title: string;
   description: string;
   price: string;
   location: string;
+  phone?: string;
   images: string[];
   date: string;
   sellerName: string;
   sellerJoined: string;
-  features: Record<string, string>;
-  sellerId?: string; // اضافه شد
+  features: Record<string, any>;
+  sellerId?: string;
 }
 
 const AdDetailPage: React.FC = () => {
   const { adId } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [ad, setAd] = React.useState<AdDetail | null>(null);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
-  const [activeImageIndex, setActiveImageIndex] = React.useState(0);
-  const [showMessageModal, setShowMessageModal] = React.useState(false);
-  const [messageText, setMessageText] = React.useState('');
-  const [sending, setSending] = React.useState(false);
-  const [messageSuccess, setMessageSuccess] = React.useState(false);
-  const [messageError, setMessageError] = React.useState('');
+  const [ad, setAd] = useState<AdDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [messageText, setMessageText] = useState('');
+  const [sending, setSending] = useState(false);
+  const [messageSuccess, setMessageSuccess] = useState(false);
+  const [messageError, setMessageError] = useState('');
   const { toast } = useToast();
   const [showChat, setShowChat] = useState(false);
   const { isFavorite, toggleFavorite } = useFavorites();
   const [userNote, setUserNote] = useState('');
+  const [phoneVisible, setPhoneVisible] = useState(false);
 
   // Load user note from localStorage
   useEffect(() => {
@@ -82,43 +84,63 @@ const AdDetailPage: React.FC = () => {
         setLoading(false);
         return;
       }
-      // فرض: جدول ads دارای فیلدهای title, description, price, location, images, created_at, user_id است
-      const { data, error } = await supabase
+      // Fetch ad data with its category
+      const { data: adData, error: adError } = await supabase
         .from('ads')
-        .select('id, title, description, price, location, images, created_at, user_id')
+        .select(`
+          *,
+          categories(name, slug)
+        `)
         .eq('id', adId)
         .single();
-      if (error || !data) {
+
+      if (adError || !adData) {
+        console.error('Error fetching ad:', adError);
         setError('آگهی مورد نظر یافت نشد');
         setLoading(false);
         return;
       }
+
+      // Fetch ad features separately since the relationship might not be detected
+      const { data: detailsData, error: detailsError } = await supabase
+        .from('ad_details')
+        .select('features')
+        .eq('ad_id', adId)
+        .maybeSingle();
+
+      if (detailsError) {
+        console.error('Error fetching ad details:', detailsError);
+      }
+
       let sellerName = '---';
       let sellerJoined = '';
-      if (data.user_id) {
+      if (adData.user_id) {
         const { data: userData } = await supabase
           .from('profiles')
           .select('full_name, created_at')
-          .eq('id', data.user_id)
+          .eq('id', adData.user_id)
           .single();
         if (userData) {
           sellerName = userData.full_name || '---';
           sellerJoined = userData.created_at ? `عضویت از ${new Date(userData.created_at).toLocaleDateString('fa-IR')}` : '';
         }
       }
-      const features: Record<string, string> = {};
+
+      const features = (detailsData?.features as Record<string, any>) || {};
+
       setAd({
-        id: data.id, // uuid string, not number!
-        title: data.title,
-        description: data.description,
-        price: data.price ? `${Number(data.price).toLocaleString('fa-IR')} تومان` : 'توافقی',
-        location: data.location || '---',
-        images: Array.isArray(data.images) ? data.images : [],
-        date: data.created_at ? new Date(data.created_at).toLocaleDateString('fa-IR') : '',
+        id: adData.id,
+        title: adData.title,
+        description: adData.description,
+        price: adData.price ? `${Number(adData.price).toLocaleString('fa-IR')} تومان` : 'توافقی',
+        location: adData.location || '---',
+        phone: adData.phone || '',
+        images: Array.isArray(adData.images) ? adData.images : [],
+        date: adData.created_at ? new Date(adData.created_at).toLocaleDateString('fa-IR') : '',
         sellerName,
         sellerJoined,
         features,
-        sellerId: data.user_id, // اضافه شد
+        sellerId: adData.user_id,
       });
       setLoading(false);
     };
@@ -185,7 +207,7 @@ const AdDetailPage: React.FC = () => {
               {/* Report Button */}
               <div className="flex justify-end">
                 <button className="text-xs text-gray-500 hover:text-red-600 flex items-center gap-1 border border-gray-200 rounded px-3 py-1">
-                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
                   گزارش آگهی
                 </button>
               </div>
@@ -197,46 +219,153 @@ const AdDetailPage: React.FC = () => {
               <div className="flex items-center justify-between mb-4">
                 <span className="text-lg font-bold text-gray-800">{ad.price}</span>
                 <button className="bg-red-100 text-red-600 px-3 py-1 rounded text-xs flex items-center gap-1">
-                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"/></svg>
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z" /></svg>
                   نشان کردن
                 </button>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 mb-4">
-                <div>متراژ: <span className="font-bold">45</span></div>
-                <div>اتاق: <span className="font-bold">1</span></div>
-                <div>طبقه: <span className="font-bold">1</span></div>
-                <div>ودیعه: <span className="font-bold">450,000,000 تومان</span></div>
-                <div>اجاره: <span className="font-bold">رایگان</span></div>
-                <div>قابل تبدیل: <span className="font-bold">خیر</span></div>
-                <div>همکف از 3</div>
+              <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-xs text-gray-600 mb-6 border-t pt-4">
+                {Object.entries(ad.features).map(([key, value]) => {
+                  if (['price', 'location', 'phone', 'description', 'title', 'show_phone'].includes(key)) return null;
+                  if (value === null || value === undefined || value === '') return null;
+
+                  const labels: Record<string, string> = {
+                    area: 'متراژ',
+                    rooms: 'تعداد اتاق',
+                    floor: 'طبقه',
+                    age: 'سن بنا',
+                    document_type: 'نوع سند',
+                    features: 'امکانات',
+                    price_per_meter: 'قیمت هر متر',
+                    buildingArea: 'متراژ بنا',
+                    height: 'ارتفاع سقف',
+                    width: 'بر مغازه',
+                    totalFloors: 'تعداد کل طبقات',
+                    unitsPerFloor: 'واحد در طبقه',
+                    direction: 'جهت ساختمان',
+                    floor_covering: 'کفپوش',
+                    cabinet: 'کابینت',
+                    balcony_area: 'متراژ بالکن',
+                    usage: 'کاربری',
+                    length: 'طول زمین',
+                    brand: 'برند و مدل',
+                    year: 'سال تولید',
+                    mileage: 'کارکرد (کیلومتر)',
+                    color: 'رنگ'
+                  };
+
+                  const valueLabels: Record<string, string> = {
+                    official: 'سند رسمی تک‌برگ',
+                    cooperative: 'سند تعاونی',
+                    endowment: 'سند اوقافی',
+                    contract: 'قولنامه‌ای',
+                    north: 'شمالی',
+                    south: 'جنوبی',
+                    east: 'شرقی',
+                    west: 'غربی',
+                    corner: 'دو کله',
+                    ceramic: 'سرامیک',
+                    parquet: 'پارکت/لمینت',
+                    stone: 'سنگ',
+                    mosaic: 'موزاییک',
+                    mdf: 'MDF',
+                    high_gloss: 'High Gloss',
+                    membrane: 'Membrane',
+                    wood: 'چوبی',
+                    metal: 'فلزی',
+                    shorayi: 'سند شورایی',
+                    official_office: 'سند اداری',
+                    official_residential: 'مسکونی (موقعیت اداری)',
+                    official_commercial: 'سند تجاری',
+                    serghofli: 'سرقفلی',
+                    residential: 'مسکونی',
+                    commercial: 'تجاری',
+                    agricultural: 'کشاورزی',
+                    industrial: 'صنعتی',
+                    garden: 'باغ',
+                    moshaa: 'مشاع',
+                    parking: 'پارکینگ',
+                    elevator: 'آسانسور',
+                    warehouse: 'انباری',
+                    balcony: 'بالکن',
+                    master_bedroom: 'خواب مستر',
+                    lobby: 'لابی',
+                    gym: 'سالن ورزشی',
+                    pool: 'استخر',
+                    sauna: 'سونا',
+                    jacuzzi: 'جکوزی',
+                    security: 'نگهبانی',
+                    water: 'آب',
+                    electricity: 'برق',
+                    gas: 'گاز',
+                    fence: 'دیوارکشی',
+                    white: 'سفید',
+                    black: 'مشکی',
+                    silver: 'نقره‌ای',
+                    gray: 'خاکستری',
+                    blue: 'آبی',
+                    red: 'قرمز'
+                  };
+
+                  const formatValue = (val: any, key: string): string => {
+                    if (Array.isArray(val)) {
+                      return val.map(v => valueLabels[v] || v).join('، ');
+                    }
+                    const formattedVal = valueLabels[val] || val.toString();
+
+                    if (['area', 'buildingArea', 'balcony_area'].includes(key)) {
+                      return `${formattedVal} متر مربع`;
+                    }
+                    if (key === 'mileage') {
+                      return `${formattedVal} کیلومتر`;
+                    }
+                    if (key === 'age' && val !== '0') {
+                      return `${formattedVal} سال`;
+                    }
+                    if (key === 'age' && val === '0') {
+                      return 'نوساز';
+                    }
+                    return formattedVal;
+                  };
+
+                  const displayValue = formatValue(value, key);
+
+                  return (
+                    <div key={key} className="flex justify-between border-b border-gray-50 pb-1">
+                      <span className="text-gray-400">{labels[key] || key}:</span>
+                      <span className="font-bold text-gray-700">{displayValue}</span>
+                    </div>
+                  );
+                })}
               </div>
               <div className="flex gap-2 mb-4">
-                <button className="flex-1 bg-primary text-white py-2 rounded-lg flex items-center justify-center">
-                  <Phone className="w-5 h-5 ml-1" />
-                  اطلاعات تماس
+                <button
+                  className={`flex-1 ${ad.features?.show_phone === false && !phoneVisible ? 'bg-gray-400 cursor-not-allowed' : 'bg-primary'} text-white py-2 rounded-lg flex items-center justify-center font-bold`}
+                  onClick={() => {
+                    if (ad.features?.show_phone === false) {
+                      toast({
+                        title: "اطلاعات تماس محدود شده است",
+                        description: "فروشنده نمایش شماره تماس را در این آگهی غیرفعال کرده است. از چت استفاده کنید.",
+                        variant: "destructive"
+                      });
+                      return;
+                    }
+                    setPhoneVisible(!phoneVisible);
+                  }}
+                >
+                  <Phone className="w-5 h-5 ml-2" />
+                  {phoneVisible ? ad.phone : 'اطلاعات تماس'}
                 </button>
-                <button 
-                  className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg flex items-center justify-center hover:bg-gray-200 transition-colors"
+                <button
+                  className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg flex items-center justify-center hover:bg-gray-200 transition-colors font-bold"
                   onClick={() => setShowChat(true)}
                 >
-                  <MessageSquare className="w-5 h-5 ml-1" />
+                  <MessageSquare className="w-5 h-5 ml-2" />
                   چت
                 </button>
               </div>
               <div className="border-b my-4" />
-              <div className="flex gap-4 text-xs text-gray-600 mb-2">
-                <div className="flex flex-col items-center">
-                  <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M16 12a4 4 0 0 1-8 0"/></svg>
-                  آسانسور ندارد
-                </div>
-                <div className="flex flex-col items-center">
-                  <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="7" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                  پارکینگ
-                </div>
-              </div>
-              <div className="border-b my-4" />
               <div className="mb-2">
-                <div className="font-bold text-sm mb-1">فروشنده</div>
+                <div className="font-bold text-sm mb-2">فروشنده</div>
                 <div className="flex items-center gap-2">
                   <div className="bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center">
                     <User className="w-5 h-5 text-gray-500" />
@@ -256,24 +385,19 @@ const AdDetailPage: React.FC = () => {
                     <div>بررسی و کارشناسی: <span className="font-bold">دارد</span></div>
                   </div>
                 </details>
-                <details>
-                  <summary className="cursor-pointer font-bold text-sm text-primary">توضیحات تکمیلی</summary>
-                  <div className="text-xs text-gray-600 mt-2">
-                    یک واحد سوئیت ۴۵ متری زیر طبقه اول با نورگیر مستقیم. آنتن، واقع در میدان اندیشه. برق، گاز، تلفن، شوفاژ. کد آگهی: ۱۲۳۴۵۶۷۸۹
-                  </div>
-                </details>
+
               </div>
             </div>
           </div>
         </div>
       </div>
-      
+
       {/* Chat Module */}
       {showChat && user && ad && (
-        <ChatModule 
-          user={user} 
-          toast={toast} 
-          initialAdId={adId} 
+        <ChatModule
+          user={user}
+          toast={toast}
+          initialAdId={adId}
           initialReceiverId={ad.sellerId}
           onClose={() => setShowChat(false)}
         />

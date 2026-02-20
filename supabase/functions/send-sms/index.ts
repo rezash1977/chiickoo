@@ -61,7 +61,7 @@ serve(async (req: Request) => {
     // ==============================
     // Create message
     // ==============================
-    const message = `کد تایید شما: ${otp}`;
+    const message = `رمز ورود به چی کو: ${otp}`;
 
     const params = new URLSearchParams({
       FROM,

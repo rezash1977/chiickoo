@@ -6,10 +6,14 @@ import { useToast } from '@/hooks/use-toast';
 import SimpleAdForm from '../components/post-ad/SimpleAdForm';
 import ImageUploader from '../components/post-ad/ImageUploader';
 import DynamicAdForm from '../components/post-ad/DynamicAdForm';
-import CategorySelector from '../components/post-ad/CategorySelector';
-import { AdFormData } from '@/types/ad';
 import Layout from '../components/layout/Layout';
-import { Store, Building2, Warehouse, Home, MapPin } from 'lucide-react';
+import { Store, Building2, Warehouse, Home, MapPin, Car, Settings, Smartphone, Sofa, Briefcase } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Phone as PhoneIcon } from 'lucide-react';
 
 interface Category {
   id: string;
@@ -42,54 +46,27 @@ const PostAdPage: React.FC = () => {
   const { user, loading } = useAuth();
   const { toast } = useToast();
   const [step, setStep] = useState(1);
+  const [category, setCategory] = useState('');
   const [basicData, setBasicData] = useState({
     title: '',
     description: '',
-    images: [],
-    price: '',
+    images: [] as string[],
     location: '',
     phone: '',
   });
-  const [category, setCategory] = useState('');
-  const [dynamicData, setDynamicData] = useState({});
+  const [dynamicData, setDynamicData] = useState<any>({});
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [basicTouched, setBasicTouched] = useState<{ title?: boolean; description?: boolean }>({});
-  const titleRef = useRef<HTMLInputElement>(null);
-  const descRef = useRef<HTMLTextAreaElement>(null);
-  const [basicError, setBasicError] = useState<string | null>(null);
-  const [imageTouched, setImageTouched] = useState(false);
-  const [suggestedCategories, setSuggestedCategories] = useState<Category[]>([]);
-  const [showAllCategories, setShowAllCategories] = useState(false);
+  const [showPhone, setShowPhone] = useState(true);
+
   const [allCategories, setAllCategories] = useState<Category[]>([]);
+  const [showAllCategories, setShowAllCategories] = useState(true);
 
-  // الگوریتم پیشنهاد دسته‌بندی بر اساس عنوان
-  const categoryKeywords = [
-    { slug: 'shop_rent', keywords: ['اجاره', 'مغازه', 'غرفه', 'دکان'] },
-    { slug: 'shop_sale', keywords: ['فروش', 'مغازه', 'غرفه', 'دکان'] },
-    { slug: 'office_rent', keywords: ['اجاره', 'دفتر', 'اداری', 'مطب', 'اتاق کار', 'کلینیک'] },
-    { slug: 'industrial', keywords: ['صنعتی', 'کشاورزی', 'تجاری', 'کارخانه'] },
-    { slug: 'apartment_rent', keywords: ['اجاره', 'آپارتمان', 'سوئیت'] },
-    { slug: 'apartment_sale', keywords: ['فروش', 'آپارتمان', 'سوئیت'] },
-    { slug: 'villa_rent', keywords: ['اجاره', 'ویلا', 'خانه', 'خانه ویلایی'] },
-    { slug: 'villa_sale', keywords: ['فروش', 'ویلا', 'خانه', 'خانه ویلایی'] },
-    { slug: 'land', keywords: ['زمین', 'پارکینگ', 'انباری'] },
-  ];
-
-  const suggestCategories = (title: string) => {
-    if (!title) return [];
-    const lower = title.toLowerCase();
-    return categoryKeywords
-      .filter(cat => cat.keywords.some(k => lower.includes(k)))
-      .map(cat => cat.slug);
-  };
-
-  // دریافت همه دسته‌بندی‌ها از سرور
+  // دریافت همه دسته‌بندی‌ها
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -97,106 +74,48 @@ const PostAdPage: React.FC = () => {
           .from('categories')
           .select('*')
           .order('name');
-
-        if (error) {
-          console.error('Error fetching categories:', error);
-          return;
-        }
-
+        if (error) throw error;
         setAllCategories(data || []);
       } catch (err) {
         console.error('Error fetching categories:', err);
       }
     };
-
     fetchCategories();
   }, []);
-
-  // پیشنهاد دسته‌بندی بر اساس عنوان
-  useEffect(() => {
-    if (!basicData.title || !basicData.description || !allCategories.length) return;
-
-    // استفاده از مدل ML برای پیشنهاد دسته‌بندی
-    const predictCategory = async () => {
-      try {
-        console.log('Sending request to ML API...');
-        const response = await fetch('http://localhost:8000/predict-category', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            title: basicData.title,
-            description: basicData.description
-          })
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          console.log('ML API response:', result);
-          const predictedCategory = result.category;
-
-          // پیدا کردن دسته‌بندی پیشنهادی در لیست
-          const suggested = allCategories.filter(cat => cat.slug === predictedCategory);
-
-          if (suggested.length > 0) {
-            setSuggestedCategories(suggested);
-            toast({
-              title: "دسته‌بندی پیشنهادی",
-              description: `با توجه به آگهی شما، دسته‌بندی "${suggested[0].name}" پیشنهاد می‌شود.`,
-            });
-          } else {
-            setSuggestedCategories(allCategories);
-          }
-        } else {
-          console.log('ML API failed, using keyword method');
-          const suggestedSlugs = suggestCategories(basicData.title);
-          const suggested = allCategories.filter(cat => suggestedSlugs.includes(cat.slug));
-
-          if (suggested.length === 0) {
-            setSuggestedCategories(allCategories);
-          } else {
-            setSuggestedCategories(suggested);
-          }
-        }
-      } catch (error) {
-        console.error('Error predicting category:', error);
-        console.log('Using keyword method as fallback');
-        const suggestedSlugs = suggestCategories(basicData.title);
-        const suggested = allCategories.filter(cat => suggestedSlugs.includes(cat.slug));
-
-        if (suggested.length === 0) {
-          setSuggestedCategories(allCategories);
-        } else {
-          setSuggestedCategories(suggested);
-        }
-      }
-    };
-
-    const timeoutId = setTimeout(() => {
-      predictCategory();
-    }, 1000);
-
-    return () => clearTimeout(timeoutId);
-  }, [basicData.title, basicData.description, allCategories]);
 
   const getCategoryIcon = (slug: string) => {
     switch (slug) {
       case 'shop_rent':
       case 'shop_sale':
+      case 'shop':
         return <Store className="w-5 h-5" />;
       case 'office_rent':
+      case 'office':
         return <Building2 className="w-5 h-5" />;
       case 'industrial':
         return <Warehouse className="w-5 h-5" />;
       case 'apartment_rent':
       case 'apartment_sale':
+      case 'apartment':
         return <Home className="w-5 h-5" />;
       case 'villa_rent':
       case 'villa_sale':
+      case 'villa':
         return <Building2 className="w-5 h-5" />;
       case 'land':
         return <MapPin className="w-5 h-5" />;
+      case 'cars':
+        return <Car className="w-5 h-5" />;
+      case 'services':
+        return <Settings className="w-5 h-5" />;
+      case 'electronics':
+        return <Smartphone className="w-5 h-5" />;
+      case 'furniture':
+        return <Sofa className="w-5 h-5" />;
+      case 'jobs':
+        return <Briefcase className="w-5 h-5" />;
+      case 'realestate':
+        return <Home className="w-5 h-5" />;
       default:
         return <Home className="w-5 h-5" />;
     }
@@ -218,24 +137,15 @@ const PostAdPage: React.FC = () => {
 
   if (!user) return null;
 
-  const onAdCreated = () => {
-    toast({
-      title: "آگهی با موفقیت ثبت شد",
-      description: "آگهی شما در انتظار تایید ادمین است.",
-    });
-    navigate('/');
-  };
-
   const handleImageUpload = async (files: File[]) => {
     setUploading(true);
-    setImageUrls([]);
     try {
       const urls: string[] = [];
       for (const file of files) {
         const url = await uploadImageToSupabase(file);
         urls.push(url);
       }
-      setImageUrls(urls);
+      setImageUrls(prev => [...prev, ...urls]);
       setUploading(false);
     } catch (err: any) {
       setUploading(false);
@@ -247,101 +157,99 @@ const PostAdPage: React.FC = () => {
     }
   };
 
+  const handleCategorySelect = (slug: string) => {
+    setCategory(slug);
+    setStep(2);
+    window.scrollTo(0, 0);
+  };
+
   const handleSubmitAd = async () => {
     setSubmitError(null);
     setSubmitting(true);
 
-    // بررسی فیلدهای ضروری
-    if (!basicData.title || !category || !basicData.description) {
-      setSubmitError('لطفاً تمام فیلدهای ضروری را پر کنید.');
+    // Validation
+    if (!category) {
+      setSubmitError('لطفاً دسته‌بندی را انتخاب کنید.');
       setSubmitting(false);
       return;
     }
 
-    if (uploading) {
-      setSubmitError('لطفاً تا پایان آپلود تصاویر صبر کنید.');
+    if (!basicData.title || !basicData.description) {
+      setSubmitError('لطفاً عنوان و توضیحات آگهی را وارد کنید.');
+      setSubmitting(false);
+      return;
+    }
+
+    // Check for price in dynamicData (mapping to price field in ads table)
+    const price = dynamicData.price || null;
+    if (!price && !['land'].includes(category)) { // Example: price might be optional for land or handled differently, but generally it's required for others
+      // In our app, price is required in DynamicAdForm config, so we should check it
+      if (!dynamicData.price) {
+        setSubmitError('لطفاً قیمت آگهی را وارد کنید.');
+        setSubmitting(false);
+        return;
+      }
+    }
+
+    if (imageUrls.length === 0) {
+      setSubmitError('لطفاً حداقل یک تصویر برای آگهی خود انتخاب کنید.');
       setSubmitting(false);
       return;
     }
 
     try {
-      // پیدا کردن category_id
       const { data: categoryData, error: categoryError } = await supabase
         .from('categories')
         .select('id')
         .eq('slug', category)
         .single();
 
-      // بررسی اعتبار categoryData
-      if (categoryError || !categoryData?.id) { // Ensure id exists
-        throw new Error('دسته‌بندی انتخاب شده یافت نشد.');
+      if (categoryError || !categoryData?.id) {
+        throw new Error('دسته‌بندی یافت نشد.');
       }
 
-      // آماده‌سازی تصاویر
-      const imagesToSend = imageUrls.length > 0 ? imageUrls : (Array.isArray(basicData.images) ? basicData.images.filter(i => typeof i === 'string') : []);
+      const { price, location, phone, ...otherFeatures } = dynamicData;
 
-      // جداسازی فیلدهای استاندارد و ویژگی‌های خاص
-      // price, location, phone, description, title are standard columns in ads table
-      // description and title come from basicData usually, but description *might* be in dynamicData for some categories if we didn't remove it or if it overrides.
-      // We assume basicData has title and description (Step 1).
-      // dynamicData has price, location, phone (Step 2) and others.
-      const { price, location, phone, ...otherFeatures } = dynamicData as any;
-
-      // ساخت داده نهایی جدول ads
       const adData = {
         title: basicData.title,
         description: basicData.description,
-        price: price ? Number(price) : (basicData.price ? Number(basicData.price) : null),
+        price: price ? Number(price) : null,
         location: location || basicData.location || null,
-        phone: phone || basicData.phone || null,
-        images: imagesToSend,
+        phone: user.phone || phone || basicData.phone || null,
+        images: imageUrls,
         category_id: categoryData.id,
         user_id: user.id,
-        status: 'pending' // Default status
+        status: 'pending'
       };
 
-      // 1. ثبت در جدول ads
       const { data: insertedAd, error: insertAdError } = await supabase
         .from('ads')
         .insert(adData)
         .select()
         .single();
 
-      if (insertAdError) {
-        console.error('Error inserting ad:', insertAdError);
-        throw new Error('خطا در ثبت آگهی. لطفاً دوباره تلاش کنید.');
-      }
+      if (insertAdError) throw insertAdError;
 
-      // 2. ثبت جزئیات در جدول ad_details
-      if (insertedAd && Object.keys(otherFeatures).length > 0) {
-        const { error: insertDetailsError } = await supabase
+      if (insertedAd) {
+        await supabase
           .from('ad_details')
           .insert({
             ad_id: insertedAd.id,
-            features: otherFeatures
+            features: {
+              ...otherFeatures,
+              show_phone: showPhone
+            }
           });
-
-        if (insertDetailsError) {
-          console.error('Error inserting ad details:', insertDetailsError);
-          // در صورت خطا در ثبت جزئیات، می‌توانیم آگهی را حذف کنیم یا فقط هشدار دهیم
-          // فعلاً فقط لاگ می‌کنیم چون آگهی اصلی ثبت شده است
-          toast({
-            title: "هشدار",
-            description: "آگهی ثبت شد اما برخی جزئیات ذخیره نشدند.",
-            variant: "destructive",
-          });
-        }
       }
 
-      onAdCreated();
+      toast({
+        title: "آگهی با موفقیت ثبت شد",
+        description: "آگهی شما پس از تایید مدیر منتشر خواهد شد.",
+      });
+      navigate('/my-ads');
     } catch (err: any) {
       console.error('Error creating ad:', err);
-      setSubmitError(err.message);
-      toast({
-        title: "خطا در ثبت آگهی",
-        description: err.message,
-        variant: "destructive",
-      });
+      setSubmitError(err.message || 'خطا در ثبت آگهی.');
     } finally {
       setSubmitting(false);
     }
@@ -349,168 +257,178 @@ const PostAdPage: React.FC = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-6 pb-20 max-w-4xl">
-        <div className="mb-6">
+      <div className="container mx-auto px-4 py-8 pb-20 max-w-4xl">
+        <div className="mb-8">
           <h1 className="text-2xl font-bold mb-2">ثبت آگهی جدید</h1>
-          <p className="text-gray-600">اطلاعات آگهی خود را با دقت پر کنید</p>
+          <p className="text-gray-600">
+            {step === 1 ? 'ابتدا دسته‌بندی آگهی خود را انتخاب کنید' : 'مشخصات آگهی را با دقت تکمیل کنید'}
+          </p>
         </div>
-        {step === 1 && (
-          <>
-            <div className={imageTouched && imageFiles.length === 0 ? 'border-2 border-red-500 rounded-lg p-2' : ''}>
-              <ImageUploader
-                imageFiles={imageFiles}
-                setImageFiles={setImageFiles}
-                previewImages={previewImages}
-                setPreviewImages={setPreviewImages}
-                uploading={uploading}
-                onUpload={handleImageUpload}
-              />
-            </div>
-            <SimpleAdForm
-              formData={basicData}
-              updateFormData={setBasicData}
-              submitting={submitting}
-              uploading={uploading}
-              touched={basicTouched}
-              setTouched={setBasicTouched}
-              titleRef={titleRef}
-              descRef={descRef}
-              error={basicError}
-            />
-            <div className="flex justify-between mt-6">
-              <button
-                className="bg-primary text-white px-6 py-2 rounded-lg flex-1"
-                onClick={() => {
-                  setImageTouched(true);
-                  const touched = { title: true, description: true };
-                  setBasicTouched(touched);
-                  if (imageFiles.length === 0) {
-                    setBasicError('لطفاً حداقل یک عکس برای آگهی آپلود کنید.');
-                    return;
-                  }
-                  if (!basicData.title) {
-                    setBasicError('لطفاً عنوان آگهی را وارد کنید.');
-                    titleRef.current?.focus();
-                    return;
-                  }
-                  if (!basicData.description) {
-                    setBasicError('لطفاً توضیحات آگهی را وارد کنید.');
-                    descRef.current?.focus();
-                    return;
-                  }
-                  setBasicError(null);
-                  setStep(2);
-                }}
-                disabled={submitting || uploading}
-              >
-                بعدی
-              </button>
-            </div>
-            {basicError && (
-              <div className="mt-4 p-2 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-600 text-center">{basicError}</p>
-              </div>
-            )}
-          </>
-        )}
-        {step === 2 && (
-          <>
-            <div className="space-y-6">
-              <div className="text-center">
-                <h2 className="text-xl font-bold mb-2">انتخاب دسته آگهی <span className="text-red-500">*</span></h2>
-                <p className="text-gray-600">یکی از دسته های زیر را انتخاب کنید.</p>
-              </div>
 
-              {/* دسته‌بندی‌های پیشنهادی */}
-              <div className="space-y-3">
-                {(showAllCategories ? allCategories : suggestedCategories).map((cat) => (
-                  <div
-                    key={cat.id}
-                    onClick={() => setCategory(cat.slug)}
-                    className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${category === cat.slug
-                      ? 'border-primary bg-primary/5'
-                      : 'border-gray-200 hover:border-primary/50'
-                      }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded">
-                        {getCategoryIcon(cat.slug)}
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-bold text-gray-900">{cat.name}</h3>
-                        <p className="text-sm text-gray-500">در دسته املاک</p>
-                      </div>
+        {step === 1 && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+              {allCategories.map((cat) => (
+                <div
+                  key={cat.id}
+                  onClick={() => handleCategorySelect(cat.slug)}
+                  className="bg-white p-6 rounded-2xl border-2 border-transparent shadow-sm hover:shadow-md hover:border-primary/20 cursor-pointer transition-all flex flex-col items-center gap-4 text-center group"
+                >
+                  <div className="w-16 h-16 flex items-center justify-center bg-gray-50 rounded-2xl group-hover:bg-primary/5 transition-colors">
+                    <div className="text-gray-600 group-hover:text-primary transition-colors transform group-hover:scale-110 duration-300">
+                      {React.cloneElement(getCategoryIcon(cat.slug) as React.ReactElement, { size: 32, className: "w-8 h-8" })}
                     </div>
                   </div>
-                ))}
-              </div>
-
-              {/* دکمه نمایش همه دسته‌ها */}
-              {!showAllCategories && (
-                <div
-                  onClick={() => setShowAllCategories(true)}
-                  className="p-4 border border-gray-200 rounded-lg cursor-pointer transition-all hover:shadow-md hover:border-primary/50"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-bold text-gray-900">دسته مورد نظرم را پیدا نکردم</h3>
-                      <p className="text-sm text-gray-500">نمایش همه دسته های دیوار</p>
-                    </div>
+                  <div>
+                    <h3 className="font-bold text-lg group-hover:text-primary transition-colors">{cat.name}</h3>
+                    <p className="text-xs text-gray-400 mt-1">ثبت در {cat.name}</p>
                   </div>
                 </div>
-              )}
+              ))}
             </div>
 
-            {category && (
-              <DynamicAdForm
-                formData={dynamicData}
-                updateFormData={setDynamicData}
-                onSubmit={handleSubmitAd}
-                submitting={submitting}
-                uploading={uploading}
-                category={category}
-                showCategorySelector={false}
-                showSubmitButton={false}
-              />
-            )}
-
-            <div className="flex justify-between mt-6">
-              <button
-                className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg"
-                onClick={() => {
-                  setStep(1);
-                  setCategory('');
-                  setDynamicData({});
-                  setShowAllCategories(false);
-                }}
-                disabled={submitting || uploading}
-              >
-                قبلی
-              </button>
-              <button
-                className="bg-primary text-white px-6 py-2 rounded-lg"
-                onClick={handleSubmitAd}
-                disabled={submitting || uploading || !category}
-              >
-                ثبت نهایی
-              </button>
+            <div className="mt-12 bg-primary/5 rounded-2xl p-8 text-center border border-primary/10">
+              <h3 className="font-bold text-gray-700 mb-2">راهنمای ثبت آگهی</h3>
+              <p className="text-sm text-gray-500 leading-relaxed max-w-lg mx-auto">
+                لطفاً ابتدا دسته‌بندی دقیق کالای خود را انتخاب کنید تا فیلدهای مربوطه برای شما نمایش داده شود. ثبت آگهی در دسته‌بندی اشتباه باعث عدم تایید آن خواهد شد.
+              </p>
             </div>
-          </>
+          </div>
         )}
-        {submitError && (
-          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-600 text-center">{submitError}</p>
+
+        {step === 2 && (
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <button
+              onClick={() => { setStep(1); setCategory(''); }}
+              className="text-primary flex items-center gap-1 font-medium mb-4"
+            >
+              <ChevronLeft className="w-4 h-4 rotate-180" />
+              تغییر دسته‌بندی ({allCategories.find(c => c.slug === category)?.name})
+            </button>
+
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-8">
+              {/* آپلود تصاویر */}
+              <section className="space-y-4">
+                <h2 className="text-xl font-bold">تصاویر آگهی <span className="text-red-500">*</span></h2>
+                <ImageUploader
+                  imageFiles={imageFiles}
+                  setImageFiles={setImageFiles}
+                  previewImages={previewImages}
+                  setPreviewImages={setPreviewImages}
+                  uploading={uploading}
+                  onUpload={handleImageUpload}
+                />
+              </section>
+
+              {/* مشخصات اصلی */}
+              <section className="space-y-6">
+                <h2 className="text-xl font-bold border-r-4 border-primary pr-3">مشخصات اصلی</h2>
+
+                <div className="space-y-2">
+                  <label className="font-bold text-gray-700">عنوان آگهی <span className="text-red-500">*</span></label>
+                  <Input
+                    placeholder="مثال: آپارتمان ۸۵ متری خوش نقشه"
+                    value={basicData.title}
+                    onChange={e => setBasicData(prev => ({ ...prev, title: e.target.value }))}
+                    className="h-12 text-lg"
+                  />
+                  <p className="text-xs text-gray-500">عنوان نباید شامل قیمت یا شماره تماس باشد.</p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="font-bold text-gray-700">توضیحات آگهی <span className="text-red-500">*</span></label>
+                  <Textarea
+                    placeholder="جزئیات و ویژگی‌های آگهی خود را بنویسید..."
+                    value={basicData.description}
+                    onChange={e => setBasicData(prev => ({ ...prev, description: e.target.value }))}
+                    className="min-h-[150px] text-lg leading-relaxed"
+                  />
+                </div>
+              </section>
+
+              {/* شماره تماس */}
+              <section className="space-y-6">
+                <h2 className="text-xl font-bold border-r-4 border-primary pr-3">اطلاعات تماس</h2>
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm">
+                      <PhoneIcon className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-500">شماره تماس تایید شده</div>
+                      <div className="font-bold text-lg tracking-wider" dir="ltr">{user.phone || 'ثبت نشده'}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2 space-x-reverse">
+                    <Checkbox
+                      id="showPhone"
+                      checked={showPhone}
+                      onCheckedChange={(checked) => setShowPhone(!!checked)}
+                    />
+                    <Label htmlFor="showPhone" className="text-sm font-medium cursor-pointer">نمایش شماره در آگهی</Label>
+                  </div>
+                </div>
+                {!user.phone && (
+                  <p className="text-xs text-red-500">هشدار: شماره تماس شما در سیستم ثبت نشده است. لطفاً از طریق پروفایل شماره خود را تایید کنید.</p>
+                )}
+              </section>
+
+              {/* فیلد های داینامیک و قیمت */}
+              <section className="space-y-6">
+                <h2 className="text-xl font-bold border-r-4 border-primary pr-3">جزئیات و قیمت</h2>
+                <DynamicAdForm
+                  formData={dynamicData}
+                  updateFormData={setDynamicData}
+                  onSubmit={() => { }}
+                  submitting={submitting}
+                  uploading={uploading}
+                  category={category}
+                  showCategorySelector={false}
+                  showSubmitButton={false}
+                />
+              </section>
+
+              {submitError && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-700">
+                  <span className="text-xl">⚠️</span>
+                  {submitError}
+                </div>
+              )}
+
+              <Button
+                onClick={handleSubmitAd}
+                disabled={submitting || uploading}
+                className="w-full h-14 text-xl font-bold rounded-xl"
+                size="lg"
+              >
+                {submitting ? 'در حال ثبت آگهی...' : 'انتشار آگهی'}
+              </Button>
+            </div>
           </div>
         )}
       </div>
     </Layout>
   );
 };
+
+// اضافه کردن ChevronLeft برای استفاده در کد
+const ChevronLeft = ({ className, ...props }: any) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    {...props}
+  >
+    <path d="m15 18-6-6 6-6" />
+  </svg>
+);
 
 export default PostAdPage;
 
