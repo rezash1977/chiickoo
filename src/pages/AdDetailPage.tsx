@@ -9,6 +9,14 @@ import ChatModule from '../components/chat/ChatModule';
 import { useToast } from '@/components/ui/use-toast';
 import { useFavorites } from '@/hooks/useFavorites';
 import AdDetailGallery from '../components/ui/AdDetailGallery';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 // پیام به فروشنده - ساختار جدول پیشنهادی در Supabase:
 //
@@ -38,6 +46,8 @@ interface AdDetail {
   sellerJoined: string;
   features: Record<string, any>;
   sellerId?: string;
+  categoryName?: string;
+  categorySlug?: string;
 }
 
 const AdDetailPage: React.FC = () => {
@@ -141,6 +151,8 @@ const AdDetailPage: React.FC = () => {
         sellerJoined,
         features,
         sellerId: adData.user_id,
+        categoryName: adData.categories?.name,
+        categorySlug: adData.categories?.slug,
       });
       setLoading(false);
     };
@@ -170,10 +182,37 @@ const AdDetailPage: React.FC = () => {
     <Layout>
       <div className="container mx-auto px-2 md:px-4 py-6 pb-20">
         {/* Breadcrumb */}
-        <div className="text-xs text-gray-400 mb-2">
-          {/* نمونه: املاک > اجاره آپارتمان > شهرک راه آهن */}
-          <span>املاک &gt; اجاره آپارتمان &gt; شهرک راه آهن</span>
-        </div>
+        <Breadcrumb className="mb-4">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/">خانه</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            {ad.categoryName && (
+              <>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link to={`/category/${ad.categorySlug}`}>{ad.categoryName}</Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              </>
+            )}
+            {ad.location && (
+              <>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <span className="max-w-[100px] truncate text-muted-foreground">{ad.location}</span>
+                </BreadcrumbItem>
+              </>
+            )}
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage className="max-w-[150px] truncate">{ad.title}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
         <div className="grid md:grid-cols-12 gap-6">
           {/* Main/Left Column */}
           <div className="md:col-span-8 w-full">

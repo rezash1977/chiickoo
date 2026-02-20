@@ -12,6 +12,14 @@ import { Link } from 'react-router-dom';
 import { useUserAds, renewAd, shouldArchiveAd } from '@/hooks/useAds';
 import { useToast } from '@/hooks/use-toast';
 import { ArchiveWarning } from '@/components/ui/archive-warning';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 interface Ad {
   id: string;
@@ -33,9 +41,9 @@ const MyAdsPage: React.FC = () => {
 
   const handleRenewAd = async (adId: string) => {
     if (!user) return;
-    
+
     setRenewingAds(prev => new Set(prev).add(adId));
-    
+
     try {
       await renewAd(adId);
       toast({
@@ -60,7 +68,7 @@ const MyAdsPage: React.FC = () => {
 
   const getStatusBadge = (status: string, createdAt: string) => {
     const isArchivable = status === 'active' && shouldArchiveAd(createdAt);
-    
+
     switch (status) {
       case 'active':
         return (
@@ -93,6 +101,19 @@ const MyAdsPage: React.FC = () => {
     <Layout>
       <div className="bg-primary text-white">
         <div className="container mx-auto px-4 py-6">
+          <Breadcrumb className="mb-4 text-white/80">
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild className="text-white/80 hover:text-white">
+                  <Link to="/">خانه</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator className="text-white/60" />
+              <BreadcrumbItem>
+                <BreadcrumbPage className="text-white">آگهی‌های من</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
           <h1 className="text-2xl font-bold">آگهی‌های من</h1>
         </div>
       </div>
@@ -105,7 +126,7 @@ const MyAdsPage: React.FC = () => {
             renewingAds={renewingAds}
           />
         )}
-        
+
         <Card>
           <CardHeader>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -135,7 +156,7 @@ const MyAdsPage: React.FC = () => {
               </div>
             ) : filteredAds.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                {statusFilter === 'all' 
+                {statusFilter === 'all'
                   ? "شما هیچ آگهی ثبت نکرده‌اید."
                   : `هیچ آگهی‌ای با وضعیت انتخاب شده یافت نشد.`
                 }
@@ -170,8 +191,8 @@ const MyAdsPage: React.FC = () => {
                       <TableCell>{new Date(ad.created_at).toLocaleDateString('fa-IR')}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <Link 
-                            to={`/ad/${ad.id}`} 
+                          <Link
+                            to={`/ad/${ad.id}`}
                             className="inline-flex items-center gap-1 text-violet-600 hover:text-violet-700"
                           >
                             <Eye className="w-4 h-4" />

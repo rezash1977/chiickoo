@@ -7,13 +7,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  Loader, 
-  Archive, 
-  AlertTriangle, 
-  CheckCircle, 
-  Users, 
-  FileText, 
+import {
+  Loader,
+  Archive,
+  AlertTriangle,
+  CheckCircle,
+  Users,
+  FileText,
   Eye,
   Check,
   X,
@@ -25,11 +25,11 @@ import {
   MessageSquare
 } from 'lucide-react';
 import Layout from '../components/layout/Layout';
-import { 
-  getAdsNeedingArchive, 
-  archiveAd, 
-  getArchivedAdsCount, 
-  getActiveAdsCount 
+import {
+  getAdsNeedingArchive,
+  archiveAd,
+  getArchivedAdsCount,
+  getActiveAdsCount
 } from '@/hooks/useAds';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
@@ -115,7 +115,7 @@ const AdminDashboard: React.FC = () => {
 
     fetchAds();
     fetchUsers();
-    
+
     const fetchMessages = async () => {
       setMessagesLoading(true);
       try {
@@ -145,7 +145,7 @@ const AdminDashboard: React.FC = () => {
 
   const handleArchiveAd = async (adId: string) => {
     setArchivingAds(prev => new Set(prev).add(adId));
-    
+
     try {
       await archiveAd(adId);
       toast({
@@ -179,14 +179,14 @@ const AdminDashboard: React.FC = () => {
 
   const handleBulkArchive = async () => {
     if (!adsNeedingArchive || adsNeedingArchive.length === 0) return;
-    
+
     setBulkArchiving(true);
-    
+
     try {
       for (const ad of adsNeedingArchive) {
         await archiveAd(ad.id);
       }
-      
+
       toast({
         title: "آرشیو گروهی انجام شد",
         description: `${adsNeedingArchive.length} آگهی با موفقیت آرشیو شدند.`,
@@ -389,7 +389,7 @@ const AdminDashboard: React.FC = () => {
           <h1 className="text-2xl font-bold">پنل مدیریت</h1>
         </div>
       </div>
-      
+
       <div className="container mx-auto px-4 py-6 space-y-6 text-right">
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -406,7 +406,7 @@ const AdminDashboard: React.FC = () => {
               </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="pb-2 text-right">
               <CardTitle className="text-sm font-medium">آگهی‌های فعال</CardTitle>
@@ -420,7 +420,7 @@ const AdminDashboard: React.FC = () => {
               </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="pb-2 text-right">
               <CardTitle className="text-sm font-medium">آگهی‌های آرشیو شده</CardTitle>
@@ -434,7 +434,7 @@ const AdminDashboard: React.FC = () => {
               </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="pb-2 text-right">
               <CardTitle className="text-sm font-medium">کاربران</CardTitle>
@@ -529,9 +529,9 @@ const AdminDashboard: React.FC = () => {
                         <TableRow key={ad.id} className="text-right">
                           <TableCell className="font-medium">{ad.title}</TableCell>
                           <TableCell>
-                            {users.find(u => u.id === ad.user_id)?.full_name || 
-                             users.find(u => u.id === ad.user_id)?.email || 
-                             ad.user_id}
+                            {users.find(u => u.id === ad.user_id)?.full_name ||
+                              users.find(u => u.id === ad.user_id)?.email ||
+                              ad.user_id}
                           </TableCell>
                           <TableCell>{ad.categories?.name || '-'}</TableCell>
                           <TableCell>{getStatusBadge(ad.status)}</TableCell>
@@ -636,7 +636,7 @@ const AdminDashboard: React.FC = () => {
                         {adsNeedingArchive.length} آگهی بیش از یک ماه از ثبت آنها گذشته و نیاز به آرشیو شدن دارند.
                       </AlertDescription>
                     </Alert>
-                    
+
                     <Table>
                       <TableHeader>
                         <TableRow className="text-right">
@@ -652,7 +652,7 @@ const AdminDashboard: React.FC = () => {
                           const createdDate = new Date(ad.created_at);
                           const now = new Date();
                           const ageInDays = Math.floor((now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
-                          
+
                           return (
                             <TableRow key={ad.id} className="text-right">
                               <TableCell className="font-medium">{ad.title}</TableCell>
@@ -705,7 +705,7 @@ const AdminDashboard: React.FC = () => {
                   <TableHeader>
                     <TableRow className="text-right">
                       <TableHead>نام</TableHead>
-                      <TableHead>ایمیل</TableHead>
+                      <TableHead>تلفن</TableHead>
                       <TableHead>شهر</TableHead>
                       <TableHead>تاریخ عضویت</TableHead>
                       <TableHead>عملیات</TableHead>
@@ -717,7 +717,7 @@ const AdminDashboard: React.FC = () => {
                         <TableCell className="font-medium">
                           {user.full_name || 'نامشخص'}
                         </TableCell>
-                        <TableCell>{user.email}</TableCell>
+                        <TableCell>{user.phone}</TableCell>
                         <TableCell>{user.city || '-'}</TableCell>
                         <TableCell>{new Date(user.created_at).toLocaleDateString('fa-IR')}</TableCell>
                         <TableCell>
@@ -744,15 +744,15 @@ const AdminDashboard: React.FC = () => {
           {/* Chat Management Tab */}
           <TabsContent value="chats" className="space-y-4">
             <Card>
-                              <CardHeader>
-                  <div className="flex justify-between items-center text-right">
-                    <CardTitle className="flex items-center gap-2">
-                      <MessageSquare className="w-5 h-5" />
-                      مدیریت چت‌ها و پیام‌ها
-                    </CardTitle>
-                    
-                  </div>
-                </CardHeader>
+              <CardHeader>
+                <div className="flex justify-between items-center text-right">
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageSquare className="w-5 h-5" />
+                    مدیریت چت‌ها و پیام‌ها
+                  </CardTitle>
+
+                </div>
+              </CardHeader>
               <CardContent>
                 {messagesLoading ? (
                   <div className="flex justify-center items-center py-8 text-right">
@@ -791,8 +791,8 @@ const AdminDashboard: React.FC = () => {
                           </TableCell>
                           <TableCell className="max-w-xs">
                             <div className="truncate">
-                              {message.content.length > 50 
-                                ? `${message.content.substring(0, 50)}...` 
+                              {message.content.length > 50
+                                ? `${message.content.substring(0, 50)}...`
                                 : message.content}
                             </div>
                           </TableCell>

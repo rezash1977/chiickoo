@@ -7,6 +7,14 @@ import { Link } from 'react-router-dom';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useToast } from '@/components/ui/use-toast';
 import Layout from '../components/layout/Layout';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 interface Ad {
   id: string;
@@ -95,6 +103,19 @@ const FavoritesPage: React.FC = () => {
     <Layout>
       <div className="bg-primary text-white">
         <div className="container mx-auto px-4 py-6">
+          <Breadcrumb className="mb-4 text-white/80">
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild className="text-white/80 hover:text-white">
+                  <Link to="/">خانه</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator className="text-white/60" />
+              <BreadcrumbItem>
+                <BreadcrumbPage className="text-white">نشان شده‌ها</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
           <h1 className="text-2xl font-bold">آگهی‌های نشان شده</h1>
         </div>
       </div>
@@ -138,8 +159,8 @@ const FavoritesPage: React.FC = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Link 
-                        to={`/ad/${ad.id}`} 
+                      <Link
+                        to={`/ad/${ad.id}`}
                         className="bg-primary text-white px-3 py-2 rounded-lg text-xs hover:bg-primary/90 transition-colors"
                       >
                         مشاهده

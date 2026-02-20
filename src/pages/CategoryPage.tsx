@@ -9,6 +9,14 @@ import { formatPrice } from '@/lib/utils';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 interface AdProps {
   id: string;
@@ -30,20 +38,20 @@ const AdItem: React.FC<AdProps> = ({ id, title, price, location, images, created
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays === 1) return 'امروز';
     if (diffDays === 2) return 'دیروز';
     return `${diffDays} روز پیش`;
   };
 
-  const imageUrl = images && images.length > 0 
-    ? images[0] 
+  const imageUrl = images && images.length > 0
+    ? images[0]
     : 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=300&h=200&fit=crop';
 
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!user) {
       toast({
         title: 'برای نشان کردن آگهی ابتدا وارد شوید',
@@ -55,8 +63,8 @@ const AdItem: React.FC<AdProps> = ({ id, title, price, location, images, created
     const success = await toggleFavorite(id);
     if (success) {
       toast({
-        title: isFavorite(id) 
-          ? 'آگهی از نشان شده‌ها حذف شد' 
+        title: isFavorite(id)
+          ? 'آگهی از نشان شده‌ها حذف شد'
           : 'آگهی به نشان شده‌ها اضافه شد',
         variant: 'default'
       });
@@ -90,14 +98,13 @@ const AdItem: React.FC<AdProps> = ({ id, title, price, location, images, created
           )}
         </div>
       </Link>
-      
+
       <button
         onClick={handleFavoriteClick}
-        className={`mr-2 p-1.5 rounded-full transition-all ${
-          isFavorite(id)
+        className={`mr-2 p-1.5 rounded-full transition-all ${isFavorite(id)
             ? 'bg-red-500 text-white shadow-md'
             : 'bg-gray-100 text-gray-600 hover:bg-red-500 hover:text-white'
-        }`}
+          }`}
       >
         <Heart className={`w-3 h-3 ${isFavorite(id) ? 'fill-current' : ''}`} />
       </button>
@@ -109,13 +116,13 @@ const CategoryPage: React.FC = () => {
   const { categoryId } = useParams();
   const { data: categories, isLoading: categoriesLoading } = useCategories();
   const { data: ads, isLoading: adsLoading, error: adsError } = useAds(categoryId);
-  
+
   const [sortOpen, setSortOpen] = React.useState(false);
   const [sortBy, setSortBy] = React.useState('جدیدترین');
-  
+
   // Find the current category
   const currentCategory = categories?.find(cat => cat.slug === categoryId);
-  
+
   if (categoriesLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -141,10 +148,23 @@ const CategoryPage: React.FC = () => {
       </div>
     );
   }
-  
+
   return (
     <Layout>
       <div className="container mx-auto px-4 pb-16">
+        <Breadcrumb className="mb-4 mt-2">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/">خانه</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{currentCategory.name}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
         <div className="bg-white rounded-lg shadow-sm p-4">
           {adsLoading ? (
             <div className="space-y-4">

@@ -13,7 +13,16 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Phone as PhoneIcon } from 'lucide-react';
+import { Phone as PhoneIcon, ChevronLeft } from 'lucide-react';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { Link } from 'react-router-dom';
 
 interface Category {
   id: string;
@@ -258,6 +267,19 @@ const PostAdPage: React.FC = () => {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8 pb-20 max-w-4xl">
+        <Breadcrumb className="mb-6">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/">خانه</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>ثبت آگهی جدید</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
         <div className="mb-8">
           <h1 className="text-2xl font-bold mb-2">ثبت آگهی جدید</h1>
           <p className="text-gray-600">
@@ -411,24 +433,6 @@ const PostAdPage: React.FC = () => {
   );
 };
 
-// اضافه کردن ChevronLeft برای استفاده در کد
-const ChevronLeft = ({ className, ...props }: any) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-    {...props}
-  >
-    <path d="m15 18-6-6 6-6" />
-  </svg>
-);
 
 export default PostAdPage;
 
