@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,12 +13,13 @@ import { Phone, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
+const toEnglishDigits = (str: string) => {
+  return str.replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d).toString())
+    .replace(/[٠-٩]/g, (d) => "٠١٢٣٤٥٦٧٨٩".indexOf(d).toString());
+};
+
 const phoneSchema = z.object({
   phone: z.string().regex(/^09\d{9}$/, { message: "شماره موبایل باید ۱۱ رقم و با ۰۹ شروع شود" }),
-});
-
-const otpSchema = z.object({
-  otp: z.string().length(6, { message: "کد تایید باید ۶ رقم باشد" }),
 });
 
 const LoginPage: React.FC = () => {
@@ -29,109 +30,91 @@ const LoginPage: React.FC = () => {
   const [phone, setPhone] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [timer, setTimer] = useState(0);
+  // OTP value — managed with useState, NOT react-hook-form (for compatibility with input-otp)
+  const [otpValue, setOtpValue] = useState("");
+  const [otpError, setOtpError] = useState("");
 
   const phoneForm = useForm<z.infer<typeof phoneSchema>>({
     resolver: zodResolver(phoneSchema),
     defaultValues: { phone: "" },
   });
 
-  const otpForm = useForm<z.infer<typeof otpSchema>>({
-    resolver: zodResolver(otpSchema),
-    defaultValues: { otp: "" },
-  });
-
-  // Redirect if user is already logged in
+  // Redirect if already logged in
   useEffect(() => {
-    if (user) {
-      navigate("/");
-    }
+    if (user) navigate("/");
   }, [user, navigate]);
 
+  // Countdown timer
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (timer > 0) {
-      interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
+      interval = setInterval(() => setTimer(prev => prev - 1), 1000);
     }
     return () => clearInterval(interval);
   }, [timer]);
 
+  // ─── Step 1: send OTP ─────────────────────────────────────────────────────
   const onPhoneSubmit = async (data: z.infer<typeof phoneSchema>) => {
     setIsLoading(true);
-    console.log("Submitting phone:", data.phone);
     try {
-      // Convert 09xx to +989xx standard format
-      const formattedPhone = data.phone.replace(/^0/, '+98');
-      console.log("Formatted phone:", formattedPhone);
+      const cleanPhone = toEnglishDigits(data.phone);
+      const formattedPhone = cleanPhone.replace(/^0/, '+98');
+      console.log("Sending OTP to:", formattedPhone);
 
-      const { data: responseData, error } = await supabase.auth.signInWithOtp({
+      const { error } = await supabase.auth.signInWithOtp({
         phone: formattedPhone,
-        options: {
-          channel: 'sms'
-        }
+        options: { channel: 'sms' },
       });
 
-      console.log("SignInWithOtp result:", { responseData, error });
-
       if (error) {
-        console.error('OTP Send error:', error);
-        toast({
-          title: "خطا در ارسال کد",
-          description: error.message || "خطایی رخ داد",
-          variant: "destructive",
-        });
+        console.error("OTP error:", error);
+        toast({ title: "خطا در ارسال کد", description: error.message, variant: "destructive" });
         return;
       }
 
-      console.log("OTP sent successfully, switching to OTP step");
       setPhone(data.phone);
+      setOtpValue("");
+      setOtpError("");
       setStep('OTP');
       setTimer(60);
-      toast({
-        title: "کد ارسال شد",
-        description: "کد تایید به شماره شما ارسال شد",
-        variant: "default",
-      });
-    } catch (error) {
-      console.error('Unexpected error in onPhoneSubmit:', error);
-      toast({
-        title: "خطا",
-        description: "خطای غیرمنتظره‌ای رخ داد",
-        variant: "destructive",
-      });
+      toast({ title: "کد ارسال شد ✓", description: "کد تایید به شماره شما ارسال شد" });
+    } catch (err) {
+      console.error("Unexpected:", err);
+      toast({ title: "خطا", description: "خطای غیرمنتظره‌ای رخ داد", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const onOtpSubmit = async (data: z.infer<typeof otpSchema>) => {
+  // ─── Step 2: verify OTP ───────────────────────────────────────────────────
+  const onOtpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setOtpError("");
+
+    if (otpValue.length !== 6) {
+      setOtpError("کد تایید باید ۶ رقم باشد");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      // Convert 09xx to +989xx standard format
       const formattedPhone = phone.replace(/^0/, '+98');
+      console.log("Verifying OTP:", otpValue, "for", formattedPhone);
 
       const { data: authData, error } = await supabase.auth.verifyOtp({
         phone: formattedPhone,
-        token: data.otp,
+        token: otpValue,
         type: 'sms',
       });
 
       if (error) {
-        console.error('Verification error:', error);
-        toast({
-          title: "کد نامعتبر",
-          description: "کد وارد شده صحیح نیست یا منقضی شده است",
-          variant: "destructive",
-        });
+        console.error("Verify error:", error);
+        setOtpError("کد وارد شده صحیح نیست یا منقضی شده است");
         return;
       }
-      // ... (rest of function remains same, I should be careful with ReplacementContent) ...
-      // Ideally using MultiReplace is safer here because `onOtpSubmit` is large.
-
 
       if (authData.user) {
-        // چک نقش ادمین
+        // Check admin role
         const { data: roleData, error: roleError } = await supabase
           .from('user_roles')
           .select('role')
@@ -140,33 +123,22 @@ const LoginPage: React.FC = () => {
           .single();
 
         if (roleData && !roleError) {
-          toast({
-            title: "ورود موفقیت‌آمیز",
-            description: "به پنل مدیریت خوش آمدید",
-            variant: "default",
-          });
+          toast({ title: "ورود موفقیت‌آمیز", description: "به پنل مدیریت خوش آمدید" });
           navigate("/admin");
         } else {
-          toast({
-            title: "ورود موفقیت‌آمیز",
-            description: "به چی کو خوش آمدید",
-            variant: "default",
-          });
+          toast({ title: "ورود موفقیت‌آمیز", description: "به چی کو خوش آمدید" });
           navigate("/");
         }
       }
-    } catch (error) {
-      console.error('Unexpected error:', error);
-      toast({
-        title: "خطا در ورود",
-        description: "خطای غیرمنتظره‌ای رخ داد",
-        variant: "destructive",
-      });
+    } catch (err) {
+      console.error("Unexpected:", err);
+      toast({ title: "خطا در ورود", description: "خطای غیرمنتظره‌ای رخ داد", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
   };
 
+  // ─── Resend OTP ───────────────────────────────────────────────────────────
   const handleResendCode = async () => {
     if (timer > 0) return;
     setIsLoading(true);
@@ -174,26 +146,21 @@ const LoginPage: React.FC = () => {
       const formattedPhone = phone.replace(/^0/, '+98');
       const { error } = await supabase.auth.signInWithOtp({
         phone: formattedPhone,
+        options: { channel: 'sms' },
       });
-
       if (error) throw error;
-
+      setOtpValue("");
+      setOtpError("");
       setTimer(60);
-      toast({
-        title: "کد مجددا ارسال شد",
-        variant: "default",
-      });
-    } catch (error) {
-      toast({
-        title: "خطا در ارسال مجدد",
-        description: "لطفا بعدا تلاش کنید",
-        variant: "destructive",
-      });
+      toast({ title: "کد مجددا ارسال شد" });
+    } catch {
+      toast({ title: "خطا در ارسال مجدد", description: "لطفا بعدا تلاش کنید", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
   };
 
+  // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-xl border-0">
@@ -208,8 +175,10 @@ const LoginPage: React.FC = () => {
             }
           </CardDescription>
         </CardHeader>
+
         <CardContent>
           {step === 'PHONE' ? (
+            /* ── Phone form ── */
             <Form {...phoneForm}>
               <form onSubmit={phoneForm.handleSubmit(onPhoneSubmit)} className="space-y-6">
                 <FormField
@@ -226,7 +195,9 @@ const LoginPage: React.FC = () => {
                           placeholder="09123456789"
                           className="text-left ltr placeholder:text-right"
                           type="tel"
+                          inputMode="numeric"
                           {...field}
+                          onChange={(e) => field.onChange(toEnglishDigits(e.target.value))}
                           disabled={isLoading}
                         />
                       </FormControl>
@@ -244,69 +215,73 @@ const LoginPage: React.FC = () => {
               </form>
             </Form>
           ) : (
-            <Form {...otpForm}>
-              <form onSubmit={otpForm.handleSubmit(onOtpSubmit)} className="space-y-6">
-                <FormField
-                  control={otpForm.control}
-                  name="otp"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col items-center justify-center">
-                      <FormLabel className="sr-only">کد تایید</FormLabel>
-                      <FormControl>
-                        <InputOTP
-                          maxLength={6}
-                          {...field}
-                          disabled={isLoading}
-                        >
-                          <InputOTPGroup dir="ltr">
-                            <InputOTPSlot index={0} />
-                            <InputOTPSlot index={1} />
-                            <InputOTPSlot index={2} />
-                            <InputOTPSlot index={3} />
-                            <InputOTPSlot index={4} />
-                            <InputOTPSlot index={5} />
-                          </InputOTPGroup>
-                        </InputOTP>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+            /* ── OTP form — no react-hook-form for InputOTP ── */
+            <form onSubmit={onOtpSubmit} className="space-y-6">
+              <div className="flex flex-col items-center gap-3">
+                <label className="sr-only">کد تایید</label>
+                <InputOTP
+                  maxLength={6}
+                  value={otpValue}
+                  autoFocus
+                  onChange={(val) => {
+                    const cleaned = toEnglishDigits(val);
+                    console.log("OTP changed:", cleaned);
+                    setOtpValue(cleaned);
+                    setOtpError("");
+                  }}
+                  disabled={isLoading}
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  containerClassName="flex justify-center w-full"
+                >
+                  <InputOTPGroup dir="ltr">
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+                {otpError && (
+                  <p className="text-red-500 text-sm text-center">{otpError}</p>
+                )}
+              </div>
 
-                <div className="flex flex-col space-y-3">
-                  <Button
-                    type="submit"
-                    className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-lg py-6"
+              <div className="flex flex-col space-y-3">
+                <Button
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-lg py-6"
+                  disabled={isLoading || otpValue.length !== 6}
+                >
+                  {isLoading ? "در حال بررسی..." : "تایید و ورود"}
+                </Button>
+
+                <div className="flex justify-between items-center text-sm">
+                  <button
+                    type="button"
+                    onClick={() => { setStep('PHONE'); setOtpValue(""); setOtpError(""); }}
+                    className="text-gray-500 hover:text-violet-600 flex items-center gap-1"
                     disabled={isLoading}
                   >
-                    {isLoading ? "در حال بررسی..." : "تایید و ورود"}
-                  </Button>
+                    <ArrowRight className="h-4 w-4" />
+                    ویرایش شماره
+                  </button>
 
-                  <div className="flex justify-between items-center text-sm">
-                    <button
-                      type="button"
-                      onClick={() => setStep('PHONE')}
-                      className="text-gray-500 hover:text-violet-600 flex items-center gap-1"
-                      disabled={isLoading}
-                    >
-                      <ArrowRight className="h-4 w-4" />
-                      ویرایش شماره
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleResendCode}
-                      disabled={timer > 0 || isLoading}
-                      className={`font-medium ${timer > 0 ? 'text-gray-400 cursor-not-allowed' : 'text-violet-600 hover:text-violet-500'}`}
-                    >
-                      {timer > 0 ? `ارسال مجدد (${timer})` : "ارسال مجدد کد"}
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={handleResendCode}
+                    disabled={timer > 0 || isLoading}
+                    className={`font-medium ${timer > 0 ? 'text-gray-400 cursor-not-allowed' : 'text-violet-600 hover:text-violet-500'}`}
+                  >
+                    {timer > 0 ? `ارسال مجدد (${timer})` : "ارسال مجدد کد"}
+                  </button>
                 </div>
-              </form>
-            </Form>
+              </div>
+            </form>
           )}
         </CardContent>
+
         <CardFooter className="flex justify-center border-t pt-6">
           <p className="text-gray-500 text-sm">
             ورود شما به معنای پذیرش <a href="#" className="text-violet-600">قوانین و مقررات</a> چی کو است

@@ -1,82 +1,114 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+// Supabase Custom SMS Hook - 0098sms
+// Deploy: supabase functions deploy send-sms --no-verify-jwt
 
-serve(async (req) => {
+// @ts-nocheck
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+serve(async (req: Request) => {
   try {
-    // 1. دریافت کل اطلاعات ورودی
-    let body;
-try {
-  body = await req.json()
-} catch {
-  return new Response(
-    JSON.stringify({ error: "Invalid JSON payload" }),
-    { status: 400, headers: { "Content-Type": "application/json" } },
-  )
-}
+    const payload = await req.json();
+    console.error("[HOOK] Full Payload:", JSON.stringify(payload));
 
-    
-    // برای دیباگ کردن در لاگ‌ها، کل محتوا را چاپ می‌کنیم تا اگر باز هم ساختار فرق داشت ببینیم
-    console.log("Incoming payload:", JSON.stringify(body))
+    // ==============================
+    // Extract phone
+    // ==============================
+    const phone: string | undefined =
+      payload?.user?.phone ?? payload?.phone ?? undefined;
 
-    // 2. استخراج شماره و کد OTP بر اساس ساختار استاندارد هوک سوپابیس
-    const user = body.user
-    const otp = body.sms?.otp // <-- تغییر مهم اینجاست (otp داخل sms است)
+    // ==============================
+    // Extract OTP (covers all Supabase formats)
+    // ==============================
+    const otp: string | undefined =
+      payload?.sms?.otp ??
+      payload?.otp ??
+      payload?.token ??
+      undefined;
 
-    if (!user || !user.phone || !otp) {
-      throw new Error('Missing user phone or otp')
+    console.error("[HOOK] Extracted phone:", phone);
+    console.error("[HOOK] Extracted otp:", otp);
+
+    if (!phone || !otp) {
+      console.error("[HOOK] Missing phone or otp");
+      return successResponse("missing_data");
     }
 
-    console.log(`Sending OTP ${otp} to ${user.phone}`);
+    // ==============================
+    // Convert Iranian number to 09 format
+    // ==============================
+    let localPhone = phone
+      .replace(/^\+98/, "0")
+      .replace(/^0098/, "0");
 
-    // 3. اصلاح فرمت شماره موبایل
-    let mobileNo = user.phone.replace('+98', '0')
-    if (mobileNo.startsWith('+')) {
-       mobileNo = "0" + mobileNo.substring(3) 
+    if (!localPhone.startsWith("0")) {
+      localPhone = "0" + localPhone;
     }
 
-    // 4. دریافت تنظیمات از متغیرهای محیطی
-    const username = Deno.env.get('SMS_USERNAME') ?? ""
-    const password = Deno.env.get('SMS_PASSWORD') ?? ""
-    const domain = "0098"
-    const from = Deno.env.get('SMS_FROM') ?? ""
-    
-    // متن پیامک
-    const messageText = `کد محرمانه ورود به چی کو: ${otp}`
+    console.error("[HOOK] Local phone:", localPhone);
 
-    // 5. ساخت URL
-    const params = new URLSearchParams()
-    params.append("FROM", from)
-    params.append("TO", mobileNo)
-    params.append("TEXT", messageText)
-    params.append("USERNAME", username)
-    params.append("PASSWORD", password)
-    params.append("DOMAIN", domain)
+    // ==============================
+    // Read environment variables
+    // ==============================
+    const USERNAME = Deno.env.get("SMS_USERNAME");
+    const PASSWORD = Deno.env.get("SMS_PASSWORD");
+    const DOMAIN   = Deno.env.get("SMS_DOMAIN");
+    const FROM     = Deno.env.get("SMS_FROM");
 
-    const url = `https://www.0098sms.com/sendsmslink.aspx?${params.toString()}`
-
-    // 6. ارسال درخواست به سامانه پیامکی
-    const response = await fetch(url)
-    const responseText = await response.text()
-
-    console.log("Provider Response:", responseText)
-
-    if (responseText.trim() === "0") {
-        return new Response(
-          JSON.stringify({ message: 'SMS sent successfully' }),
-          { headers: { "Content-Type": "application/json" } },
-        )
-    } else {
-        console.error(`SMS Failed with code: ${responseText}`);
-        return new Response(
-          JSON.stringify({ error: `SMS Provider Error Code: ${responseText}` }),
-          { status: 400, headers: { "Content-Type": "application/json" } },
-        )
+    if (!USERNAME || !PASSWORD || !DOMAIN || !FROM) {
+      console.error("[HOOK] SMS credentials missing");
+      return successResponse("config_error");
     }
 
-  } catch (error) {
-    console.error("Function Error:", error)
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 400, headers: { "Content-Type": "application/json" } },
-    )
+    // ==============================
+    // Create message
+    // ==============================
+    const message = `کد تایید شما: ${otp}`;
+
+    const params = new URLSearchParams({
+      FROM,
+      TO: localPhone,
+      TEXT: message,
+      USERNAME,
+      PASSWORD,
+      DOMAIN,
+    });
+
+    const apiUrl = `https://0098sms.com/sendsmslink.aspx?${params.toString()}`;
+
+    console.error("[HOOK] Sending request to 0098sms...");
+
+    const res = await fetch(apiUrl);
+    const body = await res.text();
+
+    console.error("[HOOK] SMS Provider Response:", body);
+
+    // 0098sms returns numeric message id when successful
+    const cleanBody = body.trim();
+    const isSuccess = /^\d+$/.test(cleanBody);
+
+    if (!isSuccess) {
+      console.error("[HOOK] SMS sending failed:", cleanBody);
+      return successResponse("sms_failed");
+    }
+
+    console.error("[HOOK] SMS sent successfully. Message ID:", cleanBody);
+
+    return successResponse(cleanBody);
+
+  } catch (err) {
+    console.error("[HOOK] Exception:", err);
+    return successResponse("error");
   }
-})
+});
+
+// ========================================
+// Supabase requires EXACTLY this structure
+// ========================================
+function successResponse(messageId: string) {
+  return new Response(
+    JSON.stringify({ message_id: messageId }),
+    {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    }
+  );
+}
