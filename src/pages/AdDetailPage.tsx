@@ -383,8 +383,25 @@ const AdDetailPage: React.FC = () => {
               </div>
               <div className="flex gap-2 mb-4">
                 <button
-                  className={`flex-1 ${ad.features?.show_phone === false && !phoneVisible ? 'bg-gray-400 cursor-not-allowed' : 'bg-primary'} text-white py-2 rounded-lg flex items-center justify-center font-bold`}
+                  className={`flex-1 ${ad.features?.show_phone === false
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-primary'
+                    } text-white py-2 rounded-lg flex items-center justify-center font-bold`}
                   onClick={() => {
+
+                    // 🚨 اگر لاگین نکرده
+                    if (!user) {
+                      toast({
+                        title: "برای مشاهده شماره وارد شوید",
+                        description: "برای دیدن اطلاعات تماس ابتدا وارد حساب کاربری شوید.",
+                        variant: "destructive"
+                      });
+
+                      navigate('/login'); // در صورت تمایل هدایت به صفحه ورود
+                      return;
+                    }
+
+                    // 🚨 اگر فروشنده نمایش شماره را بسته
                     if (ad.features?.show_phone === false) {
                       toast({
                         title: "اطلاعات تماس محدود شده است",
@@ -393,11 +410,17 @@ const AdDetailPage: React.FC = () => {
                       });
                       return;
                     }
+
                     setPhoneVisible(!phoneVisible);
                   }}
                 >
                   <Phone className="w-5 h-5 ml-2" />
-                  {phoneVisible ? formatIranPhone(ad.phone) : 'اطلاعات تماس'}
+
+                  {!user
+                    ? "ورود برای مشاهده"
+                    : phoneVisible
+                      ? formatIranPhone(ad.phone)
+                      : "اطلاعات تماس"}
                 </button>
                 <button
                   className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg flex items-center justify-center hover:bg-gray-200 transition-colors font-bold"
