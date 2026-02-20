@@ -384,34 +384,31 @@ const AdDetailPage: React.FC = () => {
               <div className="flex gap-2 mb-4">
                 <button
                   className={`flex-1 ${ad.features?.show_phone === false
-                      ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-primary'
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-primary'
                     } text-white py-2 rounded-lg flex items-center justify-center font-bold`}
                   onClick={() => {
 
-                    // 🚨 اگر لاگین نکرده
                     if (!user) {
                       toast({
                         title: "برای مشاهده شماره وارد شوید",
                         description: "برای دیدن اطلاعات تماس ابتدا وارد حساب کاربری شوید.",
                         variant: "destructive"
                       });
-
-                      navigate('/login'); // در صورت تمایل هدایت به صفحه ورود
+                      navigate('/login');
                       return;
                     }
 
-                    // 🚨 اگر فروشنده نمایش شماره را بسته
                     if (ad.features?.show_phone === false) {
                       toast({
                         title: "اطلاعات تماس محدود شده است",
-                        description: "فروشنده نمایش شماره تماس را در این آگهی غیرفعال کرده است. از چت استفاده کنید.",
+                        description: "فروشنده نمایش شماره تماس را غیرفعال کرده است.",
                         variant: "destructive"
                       });
                       return;
                     }
 
-                    setPhoneVisible(!phoneVisible);
+                    setPhoneVisible(true);
                   }}
                 >
                   <Phone className="w-5 h-5 ml-2" />
@@ -419,7 +416,15 @@ const AdDetailPage: React.FC = () => {
                   {!user
                     ? "ورود برای مشاهده"
                     : phoneVisible
-                      ? formatIranPhone(ad.phone)
+                      ? (
+                        <a
+                          href={`tel:${formatIranPhone(ad.phone)}`}
+                          className="underline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {formatIranPhone(ad.phone)}
+                        </a>
+                      )
                       : "اطلاعات تماس"}
                 </button>
                 <button
