@@ -440,16 +440,6 @@ const AdDetailPage: React.FC = () => {
                 </div>
               </div>
               {/* Accordion for more details */}
-              <div className="mt-4">
-                <details className="mb-2">
-                  <summary className="cursor-pointer font-bold text-sm text-primary">نمایش همه جزئیات</summary>
-                  <div className="text-xs text-gray-600 mt-2">
-                    <div>ارزیابی قیمت: <span className="font-bold">مناسب</span></div>
-                    <div>بررسی و کارشناسی: <span className="font-bold">دارد</span></div>
-                  </div>
-                </details>
-
-              </div>
             </div>
           </div>
         </div>
