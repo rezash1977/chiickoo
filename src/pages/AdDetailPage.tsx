@@ -430,7 +430,7 @@ const AdDetailPage: React.FC = () => {
                         navigate('/login');
                         return;
                       }
-                      setPhoneVisible(true);
+                      setShowChat  (true);
                     }}
                   >
   <MessageSquare className="w-5 h-5 ml-2" />

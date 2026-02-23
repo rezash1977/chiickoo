@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { User, Plus, Settings, LogOut, Heart, MessageSquare, Home } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -58,33 +57,33 @@ const Navbar: React.FC = () => {
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 z-20 md:hidden"
       style={{ boxShadow: '0 -2px 12px rgba(0,0,0,0.08)' }}>
-      <div className="flex justify-around items-center px-2">
+      <div className="flex justify-around items-center px-2 relative">
 
         {/* خانه */}
-        <Link to="/" className="flex flex-col items-center text-gray-500 hover:text-violet-600 min-w-0 flex-1">
-          <Home size={22} className="text-orange-500" />
+        <Link to="/" className="flex flex-col items-center text-teal-500 hover:text-teal-600 flex-1">
+          <Home size={22} />
           <span className="text-[10px] mt-0.5 font-medium">خانه</span>
         </Link>
 
-        {/* ثبت آگهی - وسط و برجسته */}
-        <Link to="/post-ad" className="flex flex-col items-center flex-1">
-          <div className="bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-full p-2.5 text-white shadow-lg -mt-4">
-            <Plus size={22} />
+        {/* ثبت آگهی - مرکز و برجسته */}
+        <Link to="/post-ad" className="absolute left-1/2 transform -translate-x-1/2 -top-4">
+          <div className="bg-gradient-to-r from-teal-400 via-cyan-400 to-teal-500 rounded-full p-3 text-white shadow-lg">
+            <Plus size={24} />
           </div>
-          <span className="text-[10px] mt-0.5 text-violet-600 font-semibold">ثبت آگهی</span>
+          <span className="text-[10px] mt-0.5 text-teal-500 font-semibold block text-center">ثبت آگهی</span>
         </Link>
 
-        {/* وضعیت کاربر */}
+        {/* حساب کاربر */}
         {!user ? (
-          <Link to="/login" className="flex flex-col items-center text-gray-500 hover:text-violet-600 flex-1">
-            <User size={22} className="text-fuchsia-600" />
+          <Link to="/login" className="flex flex-col items-center text-teal-500 hover:text-teal-600 flex-1">
+            <User size={22} />
             <span className="text-[10px] mt-0.5 font-medium">ورود</span>
           </Link>
         ) : (
           <>
             {/* حساب من */}
-            <Link to="/account" className="flex flex-col items-center relative text-gray-500 hover:text-violet-600 flex-1">
-              <User size={22} className="text-fuchsia-600" />
+            <Link to="/account" className="flex flex-col items-center relative text-teal-500 hover:text-teal-600 flex-1">
+              <User size={22} />
               {unreadCount > 0 && (
                 <span className="absolute top-0 right-2 bg-red-600 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center">
                   {unreadCount > 9 ? '9+' : unreadCount}
@@ -93,9 +92,9 @@ const Navbar: React.FC = () => {
               <span className="text-[10px] mt-0.5 font-medium">حساب من</span>
             </Link>
 
-            {/* نشان شده */}
-            <Link to="/favorites" className="flex flex-col items-center relative text-gray-500 hover:text-violet-600 flex-1">
-              <Heart size={22} className="text-red-500" />
+            {/* نشان‌ها */}
+            <Link to="/favorites" className="flex flex-col items-center relative text-red-500 hover:text-red-600 flex-1">
+              <Heart size={22} />
               {favorites.length > 0 && (
                 <span className="absolute top-0 right-2 bg-red-500 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center">
                   {favorites.length > 9 ? '9+' : favorites.length}
@@ -105,24 +104,24 @@ const Navbar: React.FC = () => {
             </Link>
 
             {/* چت */}
-            <Link to="/chat" className="flex flex-col items-center relative text-gray-500 hover:text-violet-600 flex-1">
-              <MessageSquare size={22} className="text-blue-500" />
+            <Link to="/chat" className="flex flex-col items-center text-teal-500 hover:text-teal-600 flex-1">
+              <MessageSquare size={22} />
               <span className="text-[10px] mt-0.5 font-medium">چت</span>
             </Link>
 
             {/* خروج */}
             <button
               onClick={handleSignOut}
-              className="flex flex-col items-center text-gray-500 hover:text-violet-600 flex-1"
+              className="flex flex-col items-center text-teal-500 hover:text-teal-600 flex-1"
             >
-              <LogOut size={22} className="text-violet-600" />
+              <LogOut size={22} />
               <span className="text-[10px] mt-0.5 font-medium">خروج</span>
             </button>
 
-            {/* مدیریت - فقط برای ادمین */}
+            {/* مدیریت - فقط ادمین */}
             {isAdmin && (
-              <Link to="/admin" className="flex flex-col items-center text-gray-500 hover:text-violet-600 flex-1">
-                <Settings size={22} className="text-gray-600" />
+              <Link to="/admin" className="flex flex-col items-center text-teal-500 hover:text-teal-600 flex-1">
+                <Settings size={22} />
                 <span className="text-[10px] mt-0.5 font-medium">مدیریت</span>
               </Link>
             )}

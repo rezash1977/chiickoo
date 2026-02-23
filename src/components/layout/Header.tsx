@@ -65,8 +65,18 @@ const Header: React.FC = () => {
         <div className="flex items-center gap-2 md:gap-4">
 
           {/* لوگو */}
-          <Link to="/" className="text-xl md:text-2xl font-bold text-violet-600 whitespace-nowrap flex-shrink-0">
+          <Link 
+            to="/" 
+            className="text-xl md:text-2xl font-bold 
+                       text-teal-500 
+                       whitespace-nowrap flex items-center gap-1"
+          >
             چی کو
+            <img 
+              src="/favicon.ico" 
+              alt="logo"
+              className="w-4 h-4 md:w-5 md:h-5 opacity-80"
+            />
           </Link>
 
           {/* سرچ - همیشه نمایش داده می‌شود */}
@@ -78,7 +88,7 @@ const Header: React.FC = () => {
           <div className="hidden md:block relative flex-shrink-0">
             <button
               onClick={() => setCategoryOpen(!categoryOpen)}
-              className="flex items-center gap-1 px-3 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+              className="flex items-center gap-1 px-3 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm text-teal-500"
               type="button"
             >
               دسته‌بندی‌ها
@@ -94,7 +104,7 @@ const Header: React.FC = () => {
                       <li key={cat.id}>
                         <Link
                           to={`/category/${cat.slug}`}
-                          className="block px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm"
+                          className="block px-4 py-2 hover:bg-gray-50 text-teal-500 text-sm"
                           onClick={() => setCategoryOpen(false)}
                         >
                           {cat.name}
@@ -112,15 +122,15 @@ const Header: React.FC = () => {
           {/* آیکون‌های دسکتاپ */}
           <div className="hidden md:flex items-center gap-5 flex-shrink-0">
             {!user ? (
-              <Link to="/login" className="flex flex-col items-center text-gray-600 hover:text-violet-600">
-                <User size={22} className="text-fuchsia-600" />
+              <Link to="/login" className="flex flex-col items-center text-teal-500 hover:text-teal-600">
+                <User size={22} />
                 <span className="text-xs mt-0.5">ورود</span>
               </Link>
             ) : (
               <>
                 <NotificationCenter />
-                <Link to="/account" className="flex flex-col items-center relative text-gray-600 hover:text-violet-600">
-                  <User size={22} className="text-fuchsia-600" />
+                <Link to="/account" className="flex flex-col items-center relative text-teal-500 hover:text-teal-600">
+                  <User size={22} />
                   {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-2 bg-red-600 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center">
                       {unreadCount > 9 ? '9+' : unreadCount}
@@ -128,8 +138,8 @@ const Header: React.FC = () => {
                   )}
                   <span className="text-xs mt-0.5">حساب من</span>
                 </Link>
-                <Link to="/favorites" className="flex flex-col items-center relative text-gray-600 hover:text-violet-600">
-                  <Heart size={22} className="text-red-500" />
+                <Link to="/favorites" className="flex flex-col items-center relative text-red-500 hover:text-red-600">
+                  <Heart size={22} />
                   {favorites.length > 0 && (
                     <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center">
                       {favorites.length > 9 ? '9+' : favorites.length}
@@ -137,20 +147,23 @@ const Header: React.FC = () => {
                   )}
                   <span className="text-xs mt-0.5">نشان‌ها</span>
                 </Link>
-                <button onClick={handleSignOut} className="flex flex-col items-center text-gray-600 hover:text-violet-600">
-                  <LogOut size={22} className="text-violet-600" />
+                <button onClick={handleSignOut} className="flex flex-col items-center text-teal-500 hover:text-teal-600">
+                  <LogOut size={22} />
                   <span className="text-xs mt-0.5">خروج</span>
                 </button>
                 {isAdmin && (
-                  <Link to="/admin" className="flex flex-col items-center text-gray-600 hover:text-violet-600">
-                    <Settings size={22} className="text-gray-600" />
+                  <Link to="/admin" className="flex flex-col items-center text-teal-500 hover:text-teal-600">
+                    <Settings size={22} />
                     <span className="text-xs mt-0.5">مدیریت</span>
                   </Link>
                 )}
               </>
             )}
             <Link to="/post-ad">
-              <button className="flex items-center gap-1.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-lg px-3 py-2 text-white shadow-md text-sm font-medium whitespace-nowrap">
+              <button className="flex items-center gap-1.5 
+                                 bg-gradient-to-r from-teal-400 via-cyan-400 to-teal-500 
+                                 rounded-lg px-3 py-2 text-white shadow-md text-sm font-medium whitespace-nowrap
+                                 hover:from-teal-500 hover:to-cyan-500 transition-colors">
                 <Plus size={18} />
                 ثبت آگهی
               </button>
@@ -159,11 +172,11 @@ const Header: React.FC = () => {
 
           {/* همبرگر منو - فقط موبایل */}
           <button
-            className="md:hidden flex-shrink-0 p-1.5 rounded-lg hover:bg-gray-100"
+            className="md:hidden flex-shrink-0 p-1.5 rounded-lg hover:bg-gray-100 text-teal-500"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="منو"
           >
-            {mobileMenuOpen ? <X size={22} className="text-gray-600" /> : <Menu size={22} className="text-gray-600" />}
+            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
       </div>
@@ -185,7 +198,7 @@ const Header: React.FC = () => {
                   <Link
                     key={cat.id}
                     to={`/category/${cat.slug}`}
-                    className="text-sm text-gray-700 bg-gray-50 rounded-md px-2 py-1.5 text-center truncate hover:bg-violet-50 hover:text-violet-600"
+                    className="text-sm text-teal-500 bg-gray-50 rounded-md px-2 py-1.5 text-center truncate hover:bg-teal-50 hover:text-teal-600"
                   >
                     {cat.name}
                   </Link>
@@ -196,7 +209,7 @@ const Header: React.FC = () => {
 
           <Link
             to="/post-ad"
-            className="flex items-center gap-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-lg px-4 py-2.5 text-white font-medium w-full justify-center"
+            className="flex items-center gap-2 bg-gradient-to-r from-teal-400 via-cyan-400 to-teal-500 rounded-lg px-4 py-2.5 text-white font-medium w-full justify-center hover:from-teal-500 hover:to-cyan-500 transition-colors"
           >
             <Plus size={18} />
             ثبت آگهی جدید
