@@ -418,13 +418,24 @@ const AdDetailPage: React.FC = () => {
                         : "اطلاعات تماس"}
                   </button>
                 )}
-                <button
-                  className={`flex-1 ${(ad.features?.show_phone === false || ad.features?.show_phone === 'false') ? 'w-full' : ''} bg-gray-100 text-gray-700 py-2 rounded-lg flex items-center justify-center hover:bg-gray-200 transition-colors font-bold`}
-                  onClick={() => setShowChat(true)}
-                >
-                  <MessageSquare className="w-5 h-5 ml-2" />
-                  چت
-                </button>
+               <button
+                    className="flex-1 bg-primary text-white py-2 rounded-lg flex items-center justify-center font-bold"
+                    onClick={() => {
+                      if (!user) {
+                        toast({
+                          title: "برای ارسال پیام لطفا وارد شوید",
+                          description: "برای ارسال پیام ابتدا وارد حساب کاربری شوید.",
+                          variant: "destructive"
+                        });
+                        navigate('/login');
+                        return;
+                      }
+                      setPhoneVisible(true);
+                    }}
+                  >
+  <MessageSquare className="w-5 h-5 ml-2" />
+  چت
+</button>
               </div>
               <div className="border-b my-4" />
               <div className="mb-2">
