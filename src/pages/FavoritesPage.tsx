@@ -153,6 +153,7 @@ const FavoritesPage: React.FC = () => {
                         description={null}
                         categoryName="نشان شده"
                         userId={user?.id || ''}
+                        createdAt={ad.created_at}
                       />
                       <button
                         onClick={() => handleRemoveFavorite(ad.id)}

@@ -20,6 +20,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { formatDateRelative } from '@/lib/utils';
 
 interface Ad {
   id: string;
@@ -188,7 +189,7 @@ const MyAdsPage: React.FC = () => {
                           : '—'}
                       </TableCell>
                       <TableCell>{ad.views ?? 0}</TableCell>
-                      <TableCell>{new Date(ad.created_at).toLocaleDateString('fa-IR')}</TableCell>
+                      <TableCell>{formatDateRelative(ad.created_at)}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Link

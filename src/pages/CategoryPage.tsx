@@ -105,6 +105,7 @@ const CategoryPage: React.FC = () => {
                   description={ad.description}
                   categoryName={currentCategory.name}
                   userId={ad.user_id}
+                  createdAt={ad.created_at}
                   showPhone={(ad as any).ad_details?.[0]?.features?.show_phone !== false && (ad as any).ad_details?.[0]?.features?.show_phone !== 'false'}
                 />
               ))}

@@ -10,7 +10,6 @@ const Index: React.FC = () => {
     <Layout>
       <div className="pb-16">
         <CategoryList />
-        <TaglineSection />
         <FeaturedAds />
       </div>
     </Layout>

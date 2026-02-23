@@ -57,6 +57,7 @@ const FeaturedAds: React.FC = () => {
               description={ad.description}
               categoryName={ad.categories?.name || 'دسته‌بندی نامشخص'}
               userId={ad.user_id}
+              createdAt={ad.created_at}
               showPhone={ad.ad_details?.[0]?.features?.show_phone !== false && ad.ad_details?.[0]?.features?.show_phone !== 'false'}
             />
           ))

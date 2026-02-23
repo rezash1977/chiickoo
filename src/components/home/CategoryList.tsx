@@ -13,11 +13,11 @@ interface CategoryProps {
 const Category: React.FC<CategoryProps> = ({ icon, name, color, link }) => {
   return (
     <Link to={link} className="flex flex-col items-center">
-      <div className="category-card-horizontal shadow-md hover:shadow-lg w-20 h-20" style={{ backgroundColor: color }}>
+      <div className="category-card-horizontal shadow-sm hover:shadow-md w-12 h-12 md:w-20 md:h-20" style={{ backgroundColor: color }}>
         <div className="text-white">
           {icon}
         </div>
-        <span className="mt-1 text-xs font-bold text-white text-center leading-tight">{name}</span>
+        <span className="mt-0.5 text-[9px] md:text-xs font-bold text-white text-center leading-[1.1]">{name}</span>
       </div>
     </Link>
   );
@@ -25,15 +25,15 @@ const Category: React.FC<CategoryProps> = ({ icon, name, color, link }) => {
 
 const getIconForCategory = (iconName: string) => {
   const iconMap: { [key: string]: React.ReactNode } = {
-    home: <House size={20} />,
-    car: <Car size={20} />,
-    wrench: <Settings size={20} />,
-    smartphone: <Smartphone size={20} />,
-    sofa: <Sofa size={20} />,
-    briefcase: <Briefcase size={20} />,
+    home: <House className="w-4 h-4 md:w-5 md:h-5" />,
+    car: <Car className="w-4 h-4 md:w-5 md:h-5" />,
+    wrench: <Settings className="w-4 h-4 md:w-5 md:h-5" />,
+    smartphone: <Smartphone className="w-4 h-4 md:w-5 md:h-5" />,
+    sofa: <Sofa className="w-4 h-4 md:w-5 md:h-5" />,
+    briefcase: <Briefcase className="w-4 h-4 md:w-5 md:h-5" />,
   };
   
-  return iconMap[iconName] || <House size={20} />;
+  return iconMap[iconName] || <House className="w-4 h-4 md:w-5 md:h-5" />;
 };
 
 const CategoryList: React.FC = () => {
@@ -54,11 +54,11 @@ const CategoryList: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="sticky top-0 z-40 bg-white shadow-sm border-b border-gray-100 py-3 mb-4">
+      <div className="py-2 md:py-3 mb-4">
         <div className="container mx-auto px-4">
           <div className="flex overflow-x-auto scrollbar-hide space-x-3 pb-2">
             {Array.from({ length: 6 }).map((_, index) => (
-              <div key={index} className="flex-shrink-0 w-20 h-20 bg-gray-200 rounded-lg animate-pulse"></div>
+              <div key={index} className="flex-shrink-0 w-14 h-14 md:w-20 md:h-20 bg-gray-200 rounded-lg animate-pulse"></div>
             ))}
           </div>
         </div>
@@ -69,10 +69,10 @@ const CategoryList: React.FC = () => {
   if (error) {
     console.error('Error loading categories:', error);
     return (
-      <div className="sticky top-0 z-40 bg-white shadow-sm border-b border-gray-100 py-3 mb-4">
+      <div className="py-2 md:py-3 mb-4">
         <div className="container mx-auto px-4">
-          <div className="text-center py-4">
-            <p className="text-red-500 text-sm">خطا در بارگذاری دسته‌بندی‌ها</p>
+          <div className="text-center py-2">
+            <p className="text-red-500 text-xs">خطا در بارگذاری دسته‌بندی‌ها</p>
           </div>
         </div>
       </div>
@@ -81,10 +81,10 @@ const CategoryList: React.FC = () => {
 
   if (!categories || categories.length === 0) {
     return (
-      <div className="sticky top-0 z-40 bg-white shadow-sm border-b border-gray-100 py-3 mb-4">
+      <div className="py-2 md:py-3 mb-4">
         <div className="container mx-auto px-4">
-          <div className="text-center py-4">
-            <p className="text-gray-500 text-sm">هیچ دسته‌بندی‌ای یافت نشد</p>
+          <div className="text-center py-2">
+            <p className="text-gray-500 text-xs">هیچ دسته‌بندی‌ای یافت نشد</p>
           </div>
         </div>
       </div>
@@ -92,9 +92,9 @@ const CategoryList: React.FC = () => {
   }
 
   return (
-    <div className="sticky top-0 z-40 bg-white shadow-sm border-b border-gray-100 py-3 mb-4">
+    <div className="py-2 mb-2">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-3 pb-2">
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 pb-2">
           {categories.map((category) => (
             <Category
               key={category.id}

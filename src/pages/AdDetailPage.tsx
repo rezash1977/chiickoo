@@ -17,6 +17,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { formatDateRelative } from '@/lib/utils';
 
 // پیام به فروشنده - ساختار جدول پیشنهادی در Supabase:
 //
@@ -48,6 +49,7 @@ interface AdDetail {
   sellerId?: string;
   categoryName?: string;
   categorySlug?: string;
+  createdAt?: string;
 }
 
 const AdDetailPage: React.FC = () => {
@@ -158,6 +160,7 @@ const AdDetailPage: React.FC = () => {
         sellerId: adData.user_id,
         categoryName: adData.categories?.name,
         categorySlug: adData.categories?.slug,
+        createdAt: adData.created_at,
       });
       setLoading(false);
     };
@@ -225,7 +228,7 @@ const AdDetailPage: React.FC = () => {
               <AdDetailGallery images={ad.images} title={ad.title} />
               <h1 className="text-2xl font-bold mt-4 mb-2">{ad.title}</h1>
               <div className="flex items-center text-gray-500 text-xs mb-2">
-                <span>1 هفته پیش در {ad.location}</span>
+                <span>{formatDateRelative(ad.createdAt)} در {ad.location}</span>
               </div>
               <div className="border-b my-4" />
               <h2 className="font-bold mb-2">توضیحات</h2>
