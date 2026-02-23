@@ -10,19 +10,22 @@ interface ContactInfoModalProps {
   onClose: () => void;
   userId: string;
   adTitle: string;
+  adId?: string;
 }
 
 interface UserInfo {
   email?: string;
   phone?: string;
   full_name?: string;
+  showPhone?: boolean;
 }
 
 const ContactInfoModal: React.FC<ContactInfoModalProps> = ({
   isOpen,
   onClose,
   userId,
-  adTitle
+  adTitle,
+  adId
 }) => {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(false);
@@ -33,7 +36,7 @@ const ContactInfoModal: React.FC<ContactInfoModalProps> = ({
     if (isOpen && userId) {
       fetchUserInfo();
     }
-  }, [isOpen, userId]);
+  }, [isOpen, userId, adId]);
 
   const fetchUserInfo = async () => {
     setLoading(true);
@@ -44,10 +47,27 @@ const ContactInfoModal: React.FC<ContactInfoModalProps> = ({
         .eq('id', userId)
         .single();
 
+      let showPhone = true;
+      if (adId) {
+        const { data: adDetails } = await supabase
+          .from('ad_details')
+          .select('features')
+          .eq('ad_id', adId)
+          .maybeSingle();
+        
+        if (adDetails?.features && typeof adDetails.features === 'object') {
+          const features = adDetails.features as Record<string, any>;
+          if (features.show_phone === false || features.show_phone === 'false') {
+            showPhone = false;
+          }
+        }
+      }
+
       const userInfo: UserInfo = {
-        email: 'user@example.com', // Placeholder
-        phone: profileData?.phone || undefined,
-        full_name: profileData?.full_name || undefined
+        email: '', // Don't show email if we don't have it or for privacy
+        phone: showPhone ? (profileData?.phone || undefined) : undefined,
+        full_name: profileData?.full_name || undefined,
+        showPhone
       };
 
       setUserInfo(userInfo);
@@ -149,9 +169,9 @@ const ContactInfoModal: React.FC<ContactInfoModalProps> = ({
                 </div>
               )}
 
-              {!userInfo.email && !userInfo.phone && (
+              {!userInfo.phone && (
                 <div className="text-center py-8">
-                  <p className="text-gray-500">اطلاعات تماس در دسترس نیست</p>
+                  <p className="text-gray-500">اطلاعات تماس توسط فروشنده مخفی شده است یا در دسترس نیست</p>
                 </div>
               )}
             </>

@@ -4,142 +4,142 @@ export type Json =
   | boolean
   | null
   | { [key: string]: Json | undefined }
-  | Json[]
+  | Json[];
 
 export type Database = {
   public: {
     Tables: {
       ads: {
         Row: {
-          category_id: string
-          created_at: string
-          description: string | null
-          expires_at: string | null
-          id: string
-          images: string[] | null
-          location: string | null
-          phone: string | null
-          price: number | null
-          status: string | null
-          title: string
-          updated_at: string
-          user_id: string
-        }
+          category_id: string;
+          created_at: string;
+          description: string | null;
+          expires_at: string | null;
+          id: string;
+          images: string[] | null;
+          location: string | null;
+          phone: string | null;
+          price: number | null;
+          status: string | null;
+          title: string;
+          updated_at: string;
+          user_id: string;
+        };
         Insert: {
-          category_id: string
-          created_at?: string
-          description?: string | null
-          expires_at?: string | null
-          id?: string
-          images?: string[] | null
-          location?: string | null
-          phone?: string | null
-          price?: number | null
-          status?: string | null
-          title: string
-          updated_at?: string
-          user_id: string
-        }
+          category_id: string;
+          created_at?: string;
+          description?: string | null;
+          expires_at?: string | null;
+          id?: string;
+          images?: string[] | null;
+          location?: string | null;
+          phone?: string | null;
+          price?: number | null;
+          status?: string | null;
+          title: string;
+          updated_at?: string;
+          user_id: string;
+        };
         Update: {
-          category_id?: string
-          created_at?: string
-          description?: string | null
-          expires_at?: string | null
-          id?: string
-          images?: string[] | null
-          location?: string | null
-          phone?: string | null
-          price?: number | null
-          status?: string | null
-          title?: string
-          updated_at?: string
-          user_id?: string
-        }
+          category_id?: string;
+          created_at?: string;
+          description?: string | null;
+          expires_at?: string | null;
+          id?: string;
+          images?: string[] | null;
+          location?: string | null;
+          phone?: string | null;
+          price?: number | null;
+          status?: string | null;
+          title?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "ads_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "categories"
-            referencedColumns: ["id"]
+            foreignKeyName: "ads_category_id_fkey";
+            columns: ["category_id"];
+            isOneToOne: false;
+            referencedRelation: "categories";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       categories: {
         Row: {
-          color: string | null
-          created_at: string
-          icon: string | null
-          id: string
-          name: string
-          slug: string
-        }
+          color: string | null;
+          created_at: string;
+          icon: string | null;
+          id: string;
+          name: string;
+          slug: string;
+        };
         Insert: {
-          color?: string | null
-          created_at?: string
-          icon?: string | null
-          id?: string
-          name: string
-          slug: string
-        }
+          color?: string | null;
+          created_at?: string;
+          icon?: string | null;
+          id?: string;
+          name: string;
+          slug: string;
+        };
         Update: {
-          color?: string | null
-          created_at?: string
-          icon?: string | null
-          id?: string
-          name?: string
-          slug?: string
-        }
-        Relationships: []
-      }
+          color?: string | null;
+          created_at?: string;
+          icon?: string | null;
+          id?: string;
+          name?: string;
+          slug?: string;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
-          city: string | null
-          created_at: string
-          full_name: string | null
-          id: string
-          phone: string | null
-          updated_at: string
-        }
+          city: string | null;
+          created_at: string;
+          full_name: string | null;
+          id: string;
+          phone: string | null;
+          updated_at: string;
+        };
         Insert: {
-          city?: string | null
-          created_at?: string
-          full_name?: string | null
-          id: string
-          phone?: string | null
-          updated_at?: string
-        }
+          city?: string | null;
+          created_at?: string;
+          full_name?: string | null;
+          id: string;
+          phone?: string | null;
+          updated_at?: string;
+        };
         Update: {
-          city?: string | null
-          created_at?: string
-          full_name?: string | null
-          id?: string
-          phone?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
+          city?: string | null;
+          created_at?: string;
+          full_name?: string | null;
+          id?: string;
+          phone?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       user_roles: {
         Row: {
-          created_at: string
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
+          created_at: string;
+          id: string;
+          role: Database["public"]["Enums"]["app_role"];
+          user_id: string;
+        };
         Insert: {
-          created_at?: string
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
+          created_at?: string;
+          id?: string;
+          role?: Database["public"]["Enums"]["app_role"];
+          user_id: string;
+        };
         Update: {
-          created_at?: string
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
-        }
-        Relationships: []
-      },
+          created_at?: string;
+          id?: string;
+          role?: Database["public"]["Enums"]["app_role"];
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       messages: {
         Row: {
           id: string;
@@ -169,12 +169,18 @@ export type Database = {
           is_read?: boolean;
         };
         Relationships: [];
-      },
+      };
       notifications: {
         Row: {
           id: string;
           user_id: string;
-          type: 'info' | 'success' | 'warning' | 'error' | 'ad_status' | 'system';
+          type:
+            | "info"
+            | "success"
+            | "warning"
+            | "error"
+            | "ad_status"
+            | "system";
           title: string;
           message: string;
           is_read: boolean;
@@ -184,7 +190,13 @@ export type Database = {
         Insert: {
           id?: string;
           user_id: string;
-          type: 'info' | 'success' | 'warning' | 'error' | 'ad_status' | 'system';
+          type:
+            | "info"
+            | "success"
+            | "warning"
+            | "error"
+            | "ad_status"
+            | "system";
           title: string;
           message: string;
           is_read?: boolean;
@@ -194,7 +206,13 @@ export type Database = {
         Update: {
           id?: string;
           user_id?: string;
-          type?: 'info' | 'success' | 'warning' | 'error' | 'ad_status' | 'system';
+          type?:
+            | "info"
+            | "success"
+            | "warning"
+            | "error"
+            | "ad_status"
+            | "system";
           title?: string;
           message?: string;
           is_read?: boolean;
@@ -203,169 +221,210 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "notifications_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
+            foreignKeyName: "notifications_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
         ];
-      },
+      };
       ad_details: {
         Row: {
-          id: string
-          ad_id: string
-          features: Json
-          created_at: string
-        }
+          id: string;
+          ad_id: string;
+          features: Json;
+          created_at: string;
+        };
         Insert: {
-          id?: string
-          ad_id: string
-          features?: Json
-          created_at?: string
-        }
+          id?: string;
+          ad_id: string;
+          features?: Json;
+          created_at?: string;
+        };
         Update: {
-          id?: string
-          ad_id?: string
-          features?: Json
-          created_at?: string
-        }
+          id?: string;
+          ad_id?: string;
+          features?: Json;
+          created_at?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "ad_details_ad_id_fkey"
-            columns: ["ad_id"]
-            isOneToOne: false
-            referencedRelation: "ads"
-            referencedColumns: ["id"]
-          }
-        ]
-      },
-    }
+            foreignKeyName: "ad_details_ad_id_fkey";
+            columns: ["ad_id"];
+            isOneToOne: false;
+            referencedRelation: "ads";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      favorites: {
+        Row: {
+          id: string;
+          user_id: string;
+          ad_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          ad_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          ad_id?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "favorites_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "favorites_ad_id_fkey";
+            columns: ["ad_id"];
+            isOneToOne: false;
+            referencedRelation: "ads";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+    };
     Views: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Functions: {
       has_role: {
         Args: {
-          _user_id: string
-          _role: Database["public"]["Enums"]["app_role"]
-        }
-        Returns: boolean
-      }
-    }
+          _user_id: string;
+          _role: Database["public"]["Enums"]["app_role"];
+        };
+        Returns: boolean;
+      };
+    };
     Enums: {
-      app_role: "admin" | "moderator" | "user"
-    }
+      app_role: "admin" | "moderator" | "user";
+    };
     CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-}
+      [_ in never]: never;
+    };
+  };
+};
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DefaultSchema = Database[Extract<keyof Database, "public">];
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-  | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-  | { schema: keyof Database },
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof Database },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
-  }
-  ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-    Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-  : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-    Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R
-    }
-  ? R
+    schema: keyof Database;
+  } ? keyof (
+      & Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+      & Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"]
+    )
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database } ? (
+    & Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    & Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"]
+  )[TableName] extends {
+    Row: infer R;
+  } ? R
   : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-    DefaultSchema["Views"])
-  ? (DefaultSchema["Tables"] &
-    DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-      Row: infer R
-    }
-  ? R
-  : never
-  : never
+  : DefaultSchemaTableNameOrOptions extends keyof (
+    & DefaultSchema["Tables"]
+    & DefaultSchema["Views"]
+  ) ? (
+      & DefaultSchema["Tables"]
+      & DefaultSchema["Views"]
+    )[DefaultSchemaTableNameOrOptions] extends {
+      Row: infer R;
+    } ? R
+    : never
+  : never;
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-  | keyof DefaultSchema["Tables"]
-  | { schema: keyof Database },
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof Database },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
-  }
-  ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-  : never = never,
+    schema: keyof Database;
+  } ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-    Insert: infer I
-  }
-  ? I
+  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][
+    TableName
+  ] extends {
+    Insert: infer I;
+  } ? I
   : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-    Insert: infer I
-  }
-  ? I
-  : never
-  : never
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+      Insert: infer I;
+    } ? I
+    : never
+  : never;
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-  | keyof DefaultSchema["Tables"]
-  | { schema: keyof Database },
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof Database },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
-  }
-  ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-  : never = never,
+    schema: keyof Database;
+  } ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-    Update: infer U
-  }
-  ? U
+  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][
+    TableName
+  ] extends {
+    Update: infer U;
+  } ? U
   : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-    Update: infer U
-  }
-  ? U
-  : never
-  : never
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+      Update: infer U;
+    } ? U
+    : never
+  : never;
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-  | keyof DefaultSchema["Enums"]
-  | { schema: keyof Database },
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof Database },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
-  }
-  ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-  : never = never,
+    schema: keyof Database;
+  } ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
 > = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
   ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-  : never
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+  : never;
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-  | keyof DefaultSchema["CompositeTypes"]
-  | { schema: keyof Database },
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof Database },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof Database;
   }
-  ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-  : never = never,
+    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]][
+      "CompositeTypes"
+    ]
+    : never = never,
 > = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-  : never
+  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][
+    CompositeTypeName
+  ]
+  : PublicCompositeTypeNameOrOptions extends
+    keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  : never;
 
 export const Constants = {
   public: {
@@ -373,4 +432,4 @@ export const Constants = {
       app_role: ["admin", "moderator", "user"],
     },
   },
-} as const
+} as const;

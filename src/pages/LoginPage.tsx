@@ -76,7 +76,7 @@ const LoginPage: React.FC = () => {
       setOtpValue("");
       setOtpError("");
       setStep('OTP');
-      setTimer(60);
+      setTimer(120);
       toast({ title: "کد ارسال شد ✓", description: "کد تایید به شماره شما ارسال شد" });
     } catch (err) {
       console.error("Unexpected:", err);

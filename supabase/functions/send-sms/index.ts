@@ -61,8 +61,7 @@ serve(async (req: Request) => {
     // ==============================
     // Create message
     // ==============================
-    const message = `رمز ورود به چی کو: ${otp}`;
-
+const message = `رمز ورود به چی کو: ${otp}\nchiickoo.ir`;
     const params = new URLSearchParams({
       FROM,
       TO: localPhone,

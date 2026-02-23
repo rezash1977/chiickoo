@@ -4,6 +4,7 @@ import { ChevronLeft, Search as SearchIcon, Filter } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import Navbar from '../components/layout/Navbar';
 import SearchBar from '../components/search/SearchBar';
+import AdCard from '../components/ui/AdCard';
 import { useSearch } from '@/hooks/useSearch';
 import { useCategories } from '@/hooks/useCategories';
 import { formatPrice } from '@/lib/utils';
@@ -159,44 +160,20 @@ const SearchPage: React.FC = () => {
             <p className="text-gray-600">در حال جستجو...</p>
           </div>
         ) : filteredResults.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {filteredResults.map(ad => (
-              <div
+              <AdCard
                 key={ad.id}
-                onClick={() => handleAdClick(ad.id)}
-                className="bg-white rounded-lg shadow-sm p-2 cursor-pointer hover:shadow-md transition-shadow"
-              >
-                <div className="flex gap-2 items-center">
-                  {ad.images && ad.images.length > 0 && (
-                    <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0">
-                      <img
-                        src={ad.images[0]}
-                        alt={ad.title}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-xs mb-0.5 truncate">
-                      {ad.title}
-                    </h3>
-                    {ad.price && (
-                      <p className="text-xs font-bold text-green-600 mb-0.5">
-                        {formatPrice(ad.price)} تومان
-                      </p>
-                    )}
-                    <div className="flex items-center justify-between text-[10px] text-gray-500">
-                      <span>{ad.categories.name}</span>
-                      {ad.location && <span>{ad.location}</span>}
-                    </div>
-                    {ad.description && (
-                      <p className="text-[10px] text-gray-600 mt-1 line-clamp-2">
-                        {ad.description}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
+                id={ad.id}
+                title={ad.title}
+                price={ad.price}
+                location={ad.location}
+                imageUrl={ad.images?.[0] || ''}
+                description={ad.description}
+                categoryName={ad.categories.name}
+                userId={ad.user_id}
+                showPhone={(ad as any).ad_details?.[0]?.features?.show_phone !== false && (ad as any).ad_details?.[0]?.features?.show_phone !== 'false'}
+              />
             ))}
           </div>
         ) : query ? (

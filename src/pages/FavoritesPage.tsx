@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useToast } from '@/components/ui/use-toast';
 import Layout from '../components/layout/Layout';
+import AdCard from '../components/ui/AdCard';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -140,42 +141,29 @@ const FavoritesPage: React.FC = () => {
                 <Link to="/" className="text-primary mt-2 inline-block">مشاهده آگهی‌ها</Link>
               </div>
             ) : (
-              <div className="space-y-4">
-                {ads.map((ad) => (
-                  <div key={ad.id} className="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                      <img
-                        src={ad.images && ad.images.length > 0 ? ad.images[0] : 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=300&h=200&fit=crop'}
-                        alt={ad.title}
-                        className="w-full h-full object-cover"
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {ads.map((ad) => (
+                    <div key={ad.id} className="relative group">
+                      <AdCard
+                        id={ad.id}
+                        title={ad.title}
+                        price={ad.price ?? null}
+                        location={ad.location ?? null}
+                        imageUrl={ad.images && ad.images.length > 0 ? ad.images[0] : ''}
+                        description={null}
+                        categoryName="نشان شده"
+                        userId={user?.id || ''}
                       />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-sm mb-1 truncate">{ad.title}</h3>
-                      <p className="text-green-600 font-bold text-xs mb-1">{formatPrice(ad.price)}</p>
-                      <div className="flex items-center justify-between text-xs text-gray-500">
-                        <span>{ad.location || 'موقعیت نامشخص'}</span>
-                        <span>{new Date(ad.created_at).toLocaleDateString('fa-IR')}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Link
-                        to={`/ad/${ad.id}`}
-                        className="bg-primary text-white px-3 py-2 rounded-lg text-xs hover:bg-primary/90 transition-colors"
-                      >
-                        مشاهده
-                      </Link>
                       <button
                         onClick={() => handleRemoveFavorite(ad.id)}
-                        className="bg-red-100 text-red-600 px-3 py-2 rounded-lg text-xs hover:bg-red-200 transition-colors flex items-center gap-1"
+                        className="absolute top-2 left-10 p-1.5 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors shadow-md z-10"
+                        title="حذف از نشان شده‌ها"
                       >
                         <Trash2 className="w-3 h-3" />
-                        حذف
                       </button>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
             )}
           </CardContent>
         </Card>

@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader, RefreshCw, Archive, Eye } from 'lucide-react';
+import { Loader, RefreshCw, Archive, Eye, Edit } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import { Link } from 'react-router-dom';
 import { useUserAds, renewAd, shouldArchiveAd } from '@/hooks/useAds';
@@ -197,6 +197,13 @@ const MyAdsPage: React.FC = () => {
                           >
                             <Eye className="w-4 h-4" />
                             مشاهده
+                          </Link>
+                          <Link
+                            to={`/edit-ad/${ad.id}`}
+                            className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700"
+                          >
+                            <Edit className="w-4 h-4" />
+                            ویرایش
                           </Link>
                           {(ad.status === 'archived' || (ad.status === 'active' && shouldArchiveAd(ad.created_at))) && (
                             <Button

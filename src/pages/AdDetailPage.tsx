@@ -282,7 +282,7 @@ const AdDetailPage: React.FC = () => {
                     price_per_meter: 'قیمت هر متر',
                     buildingArea: 'متراژ بنا',
                     height: 'ارتفاع سقف',
-                    width: 'بر مغازه',
+                    width: 'بر',
                     totalFloors: 'تعداد کل طبقات',
                     unitsPerFloor: 'واحد در طبقه',
                     direction: 'جهت ساختمان',
@@ -302,6 +302,11 @@ const AdDetailPage: React.FC = () => {
                     cooperative: 'سند تعاونی',
                     endowment: 'سند اوقافی',
                     contract: 'قولنامه‌ای',
+                    shorayi: 'سند شورایی',
+                    official_office: 'سند اداری',
+                    official_residential: 'مسکونی (موقعیت اداری)',
+                    official_commercial: 'سند تجاری',
+                    serghofli: 'سرقفلی',
                     north: 'شمالی',
                     south: 'جنوبی',
                     east: 'شرقی',
@@ -316,11 +321,6 @@ const AdDetailPage: React.FC = () => {
                     membrane: 'Membrane',
                     wood: 'چوبی',
                     metal: 'فلزی',
-                    shorayi: 'سند شورایی',
-                    official_office: 'سند اداری',
-                    official_residential: 'مسکونی (موقعیت اداری)',
-                    official_commercial: 'سند تجاری',
-                    serghofli: 'سرقفلی',
                     residential: 'مسکونی',
                     commercial: 'تجاری',
                     agricultural: 'کشاورزی',
@@ -333,6 +333,7 @@ const AdDetailPage: React.FC = () => {
                     balcony: 'بالکن',
                     master_bedroom: 'خواب مستر',
                     lobby: 'لابی',
+                    lobby_man: 'لابی من',
                     gym: 'سالن ورزشی',
                     pool: 'استخر',
                     sauna: 'سونا',
@@ -382,53 +383,40 @@ const AdDetailPage: React.FC = () => {
                 })}
               </div>
               <div className="flex gap-2 mb-4">
+                {ad.features?.show_phone !== false && ad.features?.show_phone !== 'false' && (
+                  <button
+                    className="flex-1 bg-primary text-white py-2 rounded-lg flex items-center justify-center font-bold"
+                    onClick={() => {
+                      if (!user) {
+                        toast({
+                          title: "برای مشاهده شماره وارد شوید",
+                          description: "برای دیدن اطلاعات تماس ابتدا وارد حساب کاربری شوید.",
+                          variant: "destructive"
+                        });
+                        navigate('/login');
+                        return;
+                      }
+                      setPhoneVisible(true);
+                    }}
+                  >
+                    <Phone className="w-5 h-5 ml-2" />
+                    {!user
+                      ? "ورود برای مشاهده"
+                      : phoneVisible
+                        ? (
+                          <a
+                            href={`tel:${formatIranPhone(ad.phone)}`}
+                            className="underline"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {formatIranPhone(ad.phone)}
+                          </a>
+                        )
+                        : "اطلاعات تماس"}
+                  </button>
+                )}
                 <button
-                  className={`flex-1 ${ad.features?.show_phone === false
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-primary'
-                    } text-white py-2 rounded-lg flex items-center justify-center font-bold`}
-                  onClick={() => {
-
-                    if (!user) {
-                      toast({
-                        title: "برای مشاهده شماره وارد شوید",
-                        description: "برای دیدن اطلاعات تماس ابتدا وارد حساب کاربری شوید.",
-                        variant: "destructive"
-                      });
-                      navigate('/login');
-                      return;
-                    }
-
-                    if (ad.features?.show_phone === false) {
-                      toast({
-                        title: "اطلاعات تماس محدود شده است",
-                        description: "فروشنده نمایش شماره تماس را غیرفعال کرده است.",
-                        variant: "destructive"
-                      });
-                      return;
-                    }
-
-                    setPhoneVisible(true);
-                  }}
-                >
-                  <Phone className="w-5 h-5 ml-2" />
-
-                  {!user
-                    ? "ورود برای مشاهده"
-                    : phoneVisible
-                      ? (
-                        <a
-                          href={`tel:${formatIranPhone(ad.phone)}`}
-                          className="underline"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {formatIranPhone(ad.phone)}
-                        </a>
-                      )
-                      : "اطلاعات تماس"}
-                </button>
-                <button
-                  className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg flex items-center justify-center hover:bg-gray-200 transition-colors font-bold"
+                  className={`flex-1 ${(ad.features?.show_phone === false || ad.features?.show_phone === 'false') ? 'w-full' : ''} bg-gray-100 text-gray-700 py-2 rounded-lg flex items-center justify-center hover:bg-gray-200 transition-colors font-bold`}
                   onClick={() => setShowChat(true)}
                 >
                   <MessageSquare className="w-5 h-5 ml-2" />

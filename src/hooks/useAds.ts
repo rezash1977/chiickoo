@@ -1,6 +1,5 @@
-
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface Ad {
   id: string;
@@ -11,11 +10,12 @@ export interface Ad {
   price: number | null;
   location: string | null;
   phone: string | null;
-  status: 'pending' | 'active' | 'expired' | 'rejected' | 'archived';
+  status: "pending" | "active" | "expired" | "rejected" | "archived";
   images: string[];
   created_at: string;
   updated_at: string;
   expires_at: string | null;
+  views: number | null;
 }
 
 // Function to check if an ad should be archived (older than 1 month)
@@ -36,19 +36,22 @@ export const needsArchiveWarning = (createdAt: string): boolean => {
 export const getDaysUntilArchive = (createdAt: string): number => {
   const oneMonthAgo = new Date();
   oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-  const daysDiff = Math.ceil((oneMonthAgo.getTime() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24));
+  const daysDiff = Math.ceil(
+    (oneMonthAgo.getTime() - new Date(createdAt).getTime()) /
+      (1000 * 60 * 60 * 24),
+  );
   return Math.max(0, daysDiff);
 };
 
 // Function to archive an ad
 export const archiveAd = async (adId: string): Promise<void> => {
   const { error } = await supabase
-    .from('ads')
-    .update({ status: 'archived' })
-    .eq('id', adId);
+    .from("ads")
+    .update({ status: "archived" })
+    .eq("id", adId);
 
   if (error) {
-    console.error('Error archiving ad:', error);
+    console.error("Error archiving ad:", error);
     throw error;
   }
 };
@@ -56,15 +59,15 @@ export const archiveAd = async (adId: string): Promise<void> => {
 // Function to renew an ad (reset to active status)
 export const renewAd = async (adId: string): Promise<void> => {
   const { error } = await supabase
-    .from('ads')
+    .from("ads")
     .update({
-      status: 'active',
-      updated_at: new Date().toISOString()
+      status: "active",
+      updated_at: new Date().toISOString(),
     })
-    .eq('id', adId);
+    .eq("id", adId);
 
   if (error) {
-    console.error('Error renewing ad:', error);
+    console.error("Error renewing ad:", error);
     throw error;
   }
 };
@@ -75,13 +78,13 @@ export const getAdsNeedingArchive = async (): Promise<Ad[]> => {
   oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
   const { data, error } = await supabase
-    .from('ads')
-    .select('*')
-    .eq('status', 'active')
-    .lt('created_at', oneMonthAgo.toISOString());
+    .from("ads")
+    .select("*")
+    .eq("status", "active")
+    .lt("created_at", oneMonthAgo.toISOString());
 
   if (error) {
-    console.error('Error fetching ads needing archive:', error);
+    console.error("Error fetching ads needing archive:", error);
     throw error;
   }
 
@@ -94,13 +97,13 @@ export const getAdsNeedingWarning = async (): Promise<Ad[]> => {
   warningDate.setDate(warningDate.getDate() - 25); // 5 days before archive
 
   const { data, error } = await supabase
-    .from('ads')
-    .select('*')
-    .eq('status', 'active')
-    .lt('created_at', warningDate.toISOString());
+    .from("ads")
+    .select("*")
+    .eq("status", "active")
+    .lt("created_at", warningDate.toISOString());
 
   if (error) {
-    console.error('Error fetching ads needing warning:', error);
+    console.error("Error fetching ads needing warning:", error);
     throw error;
   }
 
@@ -110,12 +113,12 @@ export const getAdsNeedingWarning = async (): Promise<Ad[]> => {
 // Function to get archived ads count
 export const getArchivedAdsCount = async (): Promise<number> => {
   const { count, error } = await supabase
-    .from('ads')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'archived');
+    .from("ads")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "archived");
 
   if (error) {
-    console.error('Error fetching archived ads count:', error);
+    console.error("Error fetching archived ads count:", error);
     throw error;
   }
 
@@ -125,85 +128,118 @@ export const getArchivedAdsCount = async (): Promise<number> => {
 // Function to get active ads count
 export const getActiveAdsCount = async (): Promise<number> => {
   const { count, error } = await supabase
-    .from('ads')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'active');
+    .from("ads")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "active");
 
   if (error) {
-    console.error('Error fetching active ads count:', error);
+    console.error("Error fetching active ads count:", error);
     throw error;
   }
 
   return count || 0;
 };
 
-export type SortOption = 'newest' | 'oldest' | 'price_asc' | 'price_desc';
+export type SortOption = "newest" | "oldest" | "price_asc" | "price_desc";
 
-export const useAds = (categorySlug?: string, sortBy: SortOption = 'newest') => {
+export const useAds = (
+  categorySlug?: string,
+  sortBy: SortOption = "newest",
+) => {
   return useQuery({
-    queryKey: ['ads', categorySlug, sortBy],
+    queryKey: ["ads", categorySlug, sortBy],
     queryFn: async () => {
       let query = supabase
-        .from('ads')
+        .from("ads")
         .select(`
           *,
           categories!inner(slug, name)
         `)
-        .eq('status', 'active')
-        .eq('status', 'active');
+        .eq("status", "active");
 
       // Apply sorting
       switch (sortBy) {
-        case 'oldest':
-          query = query.order('created_at', { ascending: true });
+        case "oldest":
+          query = query.order("created_at", { ascending: true });
           break;
-        case 'price_asc':
-          query = query.order('price', { ascending: true });
+        case "price_asc":
+          query = query.order("price", { ascending: true });
           break;
-        case 'price_desc':
-          query = query.order('price', { ascending: false });
+        case "price_desc":
+          query = query.order("price", { ascending: false });
           break;
-        case 'newest':
+        case "newest":
         default:
-          query = query.order('created_at', { ascending: false });
+          query = query.order("created_at", { ascending: false });
           break;
       }
 
       if (categorySlug) {
-        query = query.eq('categories.slug', categorySlug);
+        query = query.eq("categories.slug", categorySlug);
       }
 
-      const { data, error } = await query;
+      const { data: ads, error } = await query;
 
       if (error) {
-        console.error('Error fetching ads:', error);
+        console.error("Error fetching ads:", error);
         throw error;
       }
 
-      return data as (Ad & { categories: { slug: string; name: string } })[];
+      if (!ads || ads.length === 0) return [];
+
+      // Fetch ad_details separately to avoid join errors
+      const adIds = ads.map((ad) => ad.id);
+      const { data: details } = await supabase
+        .from("ad_details")
+        .select("ad_id, features")
+        .in("ad_id", adIds);
+
+      // Merge details into ads
+      const adsWithDetails = ads.map((ad) => {
+        const adDetail = details?.find((d) => d.ad_id === ad.id);
+        return {
+          ...ad,
+          ad_details: adDetail ? [{ features: adDetail.features }] : [],
+        };
+      });
+
+      return adsWithDetails as (Ad & {
+        categories: { slug: string; name: string };
+        ad_details: { features: any }[];
+      })[];
     },
   });
 };
 
 export const useAdById = (adId: string) => {
   return useQuery({
-    queryKey: ['ad', adId],
+    queryKey: ["ad", adId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('ads')
+      const { data: ad, error: adError } = await supabase
+        .from("ads")
         .select(`
           *,
           categories(name, slug)
         `)
-        .eq('id', adId)
+        .eq("id", adId)
         .single();
 
-      if (error) {
-        console.error('Error fetching ad:', error);
-        throw error;
+      if (adError) {
+        console.error("Error fetching ad:", adError);
+        throw adError;
       }
 
-      return data;
+      // Fetch ad_details separately
+      const { data: details } = await supabase
+        .from("ad_details")
+        .select("features")
+        .eq("ad_id", adId)
+        .maybeSingle();
+
+      return {
+        ...ad,
+        ad_details: details ? [{ features: details.features }] : [],
+      };
     },
   });
 };
@@ -211,23 +247,44 @@ export const useAdById = (adId: string) => {
 // Hook to get user's ads including archived ones
 export const useUserAds = (userId: string) => {
   return useQuery({
-    queryKey: ['user-ads', userId],
+    queryKey: ["user-ads", userId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('ads')
+      const { data: ads, error } = await supabase
+        .from("ads")
         .select(`
           *,
           categories(name, slug)
         `)
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
 
       if (error) {
-        console.error('Error fetching user ads:', error);
+        console.error("Error fetching user ads:", error);
         throw error;
       }
 
-      return data as (Ad & { categories: { name: string; slug: string } })[];
+      if (!ads || ads.length === 0) return [];
+
+      // Fetch ad_details separately
+      const adIds = ads.map((ad) => ad.id);
+      const { data: details } = await supabase
+        .from("ad_details")
+        .select("ad_id, features")
+        .in("ad_id", adIds);
+
+      // Merge details into ads
+      const adsWithDetails = ads.map((ad) => {
+        const adDetail = details?.find((d) => d.ad_id === ad.id);
+        return {
+          ...ad,
+          ad_details: adDetail ? [{ features: adDetail.features }] : [],
+        };
+      });
+
+      return adsWithDetails as (Ad & {
+        categories: { name: string; slug: string };
+        ad_details: { features: any }[];
+      })[];
     },
     enabled: !!userId,
   });
@@ -236,23 +293,23 @@ export const useUserAds = (userId: string) => {
 // Hook to get ads needing archive warnings for a specific user
 export const useUserAdsNeedingWarning = (userId: string) => {
   return useQuery({
-    queryKey: ['user-ads-warning', userId],
+    queryKey: ["user-ads-warning", userId],
     queryFn: async () => {
       const warningDate = new Date();
       warningDate.setDate(warningDate.getDate() - 25);
 
       const { data, error } = await supabase
-        .from('ads')
+        .from("ads")
         .select(`
           *,
           categories(name, slug)
         `)
-        .eq('user_id', userId)
-        .eq('status', 'active')
-        .lt('created_at', warningDate.toISOString());
+        .eq("user_id", userId)
+        .eq("status", "active")
+        .lt("created_at", warningDate.toISOString());
 
       if (error) {
-        console.error('Error fetching user ads needing warning:', error);
+        console.error("Error fetching user ads needing warning:", error);
         throw error;
       }
 

@@ -1,6 +1,6 @@
 ﻿import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Mail } from 'lucide-react';
+import { Heart, Mail, MapPin } from 'lucide-react';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
@@ -17,6 +17,7 @@ interface AdCardProps {
   categoryName: string;
   userId: string;
   showFavoriteButton?: boolean;
+  showPhone?: boolean;
   className?: string;
 }
 
@@ -30,6 +31,7 @@ const AdCard: React.FC<AdCardProps> = ({
   categoryName,
   userId,
   showFavoriteButton = true,
+  showPhone = true,
   className = ""
 }) => {
   const { user } = useAuth();
@@ -75,24 +77,24 @@ const AdCard: React.FC<AdCardProps> = ({
     <>
       <div className={`relative bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow animate-fade-in ${className}`}>
         <Link to={`/ad/${id}`} className="flex items-center">
-          <div className="w-16 h-16 flex-shrink-0">
+          <div className="w-24 h-24 md:w-32 md:h-32 flex-shrink-0">
             <img 
               src={imageUrl || 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43'} 
               alt={title} 
               className="w-full h-full object-cover" 
             />
           </div>
-          <div className="flex-1 p-2 min-w-0">
-            <h3 className="font-medium text-xs mb-0.5 truncate">{title}</h3>
+          <div className="flex-1 p-3 md:p-4 min-w-0">
+            <h3 className="font-bold text-sm md:text-base mb-1 truncate">{title}</h3>
             {price !== null && (
-              <p className="text-green-600 font-bold text-xs mb-0.5">{formatPrice(price)} تومان</p>
+              <p className="text-primary font-bold text-sm md:text-base mb-1">{formatPrice(price)} تومان</p>
             )}
-            <div className="flex items-center justify-between text-[10px] text-gray-500 mb-1">
-              <span>{categoryName}</span>
-              {location && <span>{location}</span>}
+            <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
+              <span className="bg-gray-100 px-2 py-0.5 rounded">{categoryName}</span>
+              {location && <span className="flex items-center gap-1 group-hover:text-primary transition-colors"><MapPin className="w-3 h-3" /> {location}</span>}
             </div>
             {description && (
-              <p className="text-[10px] text-gray-600 line-clamp-2 leading-relaxed">
+              <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed hidden sm:block">
                 {description}
               </p>
             )}
@@ -109,13 +111,15 @@ const AdCard: React.FC<AdCardProps> = ({
           </button>
         )}
 
-        <button
-          onClick={handleContactClick}
-          className="absolute top-2 right-2 p-1.5 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-all shadow-md"
-          title="اطلاعات تماس"
-        >
-          <Mail className="w-3 h-3" />
-        </button>
+        {showPhone && (
+          <button
+            onClick={handleContactClick}
+            className="absolute top-2 right-2 p-1.5 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-all shadow-md"
+            title="اطلاعات تماس"
+          >
+            <Mail className="w-3 h-3" />
+          </button>
+        )}
       </div>
 
       <ContactInfoModal
@@ -123,6 +127,7 @@ const AdCard: React.FC<AdCardProps> = ({
         onClose={() => setShowContactModal(false)}
         userId={userId}
         adTitle={title}
+        adId={id}
       />
     </>
   );

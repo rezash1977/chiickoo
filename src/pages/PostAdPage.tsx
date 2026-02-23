@@ -217,7 +217,7 @@ const PostAdPage: React.FC = () => {
         throw new Error('دسته‌بندی یافت نشد.');
       }
 
-      const { price, location, phone, ...otherFeatures } = dynamicData;
+      const { price, location, phone, show_phone, ...otherFeatures } = dynamicData;
 
       const adData = {
         title: basicData.title,
@@ -240,15 +240,19 @@ const PostAdPage: React.FC = () => {
       if (insertAdError) throw insertAdError;
 
       if (insertedAd) {
-        await supabase
+        const { error: detailsError } = await supabase
           .from('ad_details')
           .insert({
             ad_id: insertedAd.id,
             features: {
               ...otherFeatures,
-              show_phone: showPhone
+              show_phone: !!showPhone
             }
           });
+        
+        if (detailsError && (detailsError as any).status !== 404) {
+          console.error('Error inserting ad_details:', detailsError);
+        }
       }
 
       toast({
@@ -369,19 +373,22 @@ const PostAdPage: React.FC = () => {
               </section>
 
               {/* شماره تماس */}
-              <section className="space-y-6">
-                <h2 className="text-xl font-bold border-r-4 border-primary pr-3">اطلاعات تماس</h2>
-                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex items-center justify-between">
+              <section className="space-y-6 text-right">
+                <h2 className="text-xl font-bold border-r-4 border-primary pr-3 text-right">اطلاعات تماس</h2>
+                <div 
+                  className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex items-center justify-between cursor-pointer hover:bg-gray-100 transition-colors"
+                  onClick={() => setShowPhone(!showPhone)}
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm">
                       <PhoneIcon className="w-5 h-5 text-primary" />
                     </div>
-                    <div>
+                    <div className="text-right">
                       <div className="text-sm text-gray-500">شماره تماس تایید شده</div>
                       <div className="font-bold text-lg tracking-wider" dir="ltr">{user.phone || 'ثبت نشده'}</div>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2 space-x-reverse">
+                  <div className="flex items-center space-x-2 space-x-reverse" onClick={(e) => e.stopPropagation()}>
                     <Checkbox
                       id="showPhone"
                       checked={showPhone}

@@ -32,7 +32,7 @@ const FeaturedAds: React.FC = () => {
   return (
     <div className="container mx-auto px-4 mb-20">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-bold">آگهی‌های ویژه</h2>
+        <h2 className="text-lg font-bold">انواع آگهی‌ها و نیازمندی ها</h2>
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as SortOption)}
@@ -44,7 +44,7 @@ const FeaturedAds: React.FC = () => {
           <option value="price_desc">گران‌ترین</option>
         </select>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {featuredAds.length > 0 ? (
           featuredAds.map((ad) => (
             <AdCard
@@ -56,6 +56,8 @@ const FeaturedAds: React.FC = () => {
               imageUrl={ad.images?.[0] || ''}
               description={ad.description}
               categoryName={ad.categories?.name || 'دسته‌بندی نامشخص'}
+              userId={ad.user_id}
+              showPhone={ad.ad_details?.[0]?.features?.show_phone !== false && ad.ad_details?.[0]?.features?.show_phone !== 'false'}
             />
           ))
         ) : (

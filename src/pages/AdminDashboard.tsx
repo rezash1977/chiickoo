@@ -25,6 +25,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import Layout from '../components/layout/Layout';
+import { Link } from 'react-router-dom';
 import {
   getAdsNeedingArchive,
   archiveAd,
@@ -46,8 +47,10 @@ interface Ad {
 
 interface User {
   id: string;
-  email: string;
+  email?: string;
   full_name?: string;
+  phone?: string;
+  city?: string;
   created_at: string;
   role?: string;
 }
@@ -84,62 +87,61 @@ const AdminDashboard: React.FC = () => {
     enabled: !!user,
   });
 
-  // Fetch all ads for management
-  useEffect(() => {
-    const fetchAds = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('ads')
-        .select(`
-          *,
-          categories(name)
-        `)
-        .order('created_at', { ascending: false });
+  const fetchAds = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('ads')
+      .select(`
+        *,
+        categories(name)
+      `)
+      .order('created_at', { ascending: false });
 
-      if (!error && data) {
-        setAds(data);
-      }
-      setLoading(false);
-    };
+    if (!error && data) {
+      setAds(data);
+    }
+    setLoading(false);
+  };
 
-    const fetchUsers = async () => {
+  const fetchUsers = async () => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!error && data) {
+      setUsers(data);
+    }
+  };
+
+  const fetchMessages = async () => {
+    setMessagesLoading(true);
+    try {
+      // First, let's check if messages table exists and get basic data
       const { data, error } = await supabase
-        .from('profiles')
+        .from('messages')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(50);
 
-      if (!error && data) {
-        setUsers(data);
+      if (error) {
+        console.error('Error fetching messages:', error);
+        setMessages([]);
+      } else if (data) {
+        // For now, just use basic message data without joins
+        setMessages(data);
       }
-    };
+    } catch (err) {
+      console.error('Exception in fetchMessages:', err);
+      setMessages([]);
+    }
+    setMessagesLoading(false);
+  };
 
+  // Fetch data on load
+  useEffect(() => {
     fetchAds();
     fetchUsers();
-
-    const fetchMessages = async () => {
-      setMessagesLoading(true);
-      try {
-        // First, let's check if messages table exists and get basic data
-        const { data, error } = await supabase
-          .from('messages')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(50);
-
-        if (error) {
-          console.error('Error fetching messages:', error);
-          setMessages([]);
-        } else if (data) {
-          // For now, just use basic message data without joins
-          setMessages(data);
-        }
-      } catch (err) {
-        console.error('Exception in fetchMessages:', err);
-        setMessages([]);
-      }
-      setMessagesLoading(false);
-    };
-
     fetchMessages();
   }, []);
 
@@ -153,15 +155,7 @@ const AdminDashboard: React.FC = () => {
         description: "آگهی با موفقیت آرشیو شد.",
       });
       refetchArchive();
-      // Refresh ads list
-      const { data } = await supabase
-        .from('ads')
-        .select(`
-          *,
-          categories(name)
-        `)
-        .order('created_at', { ascending: false });
-      if (data) setAds(data);
+      fetchAds();
     } catch (error) {
       toast({
         title: "خطا در آرشیو کردن",
@@ -193,14 +187,7 @@ const AdminDashboard: React.FC = () => {
       });
       refetchArchive();
       // Refresh ads list
-      const { data } = await supabase
-        .from('ads')
-        .select(`
-          *,
-          categories(name)
-        `)
-        .order('created_at', { ascending: false });
-      if (data) setAds(data);
+      fetchAds();
     } catch (error) {
       toast({
         title: "خطا در آرشیو گروهی",
@@ -226,15 +213,7 @@ const AdminDashboard: React.FC = () => {
         description: `وضعیت آگهی به ${newStatus} تغییر کرد.`,
       });
 
-      // Refresh ads list
-      const { data } = await supabase
-        .from('ads')
-        .select(`
-          *,
-          categories(name)
-        `)
-        .order('created_at', { ascending: false });
-      if (data) setAds(data);
+      fetchAds();
     } catch (error) {
       toast({
         title: "خطا در تغییر وضعیت",
@@ -260,15 +239,7 @@ const AdminDashboard: React.FC = () => {
         description: "آگهی با موفقیت حذف شد.",
       });
 
-      // Refresh ads list
-      const { data } = await supabase
-        .from('ads')
-        .select(`
-          *,
-          categories(name)
-        `)
-        .order('created_at', { ascending: false });
-      if (data) setAds(data);
+      fetchAds();
     } catch (error) {
       toast({
         title: "خطا در حذف آگهی",
@@ -538,11 +509,17 @@ const AdminDashboard: React.FC = () => {
                           <TableCell>{new Date(ad.created_at).toLocaleDateString('fa-IR')}</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2 justify-end">
+                              <Link to={`/ad/${ad.id}`} target="_blank">
+                                <Button size="sm" variant="outline" title="مشاهده آگهی">
+                                  <Eye className="w-3 h-3" />
+                                </Button>
+                              </Link>
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleStatusChange(ad.id, 'active')}
                                 disabled={ad.status === 'active'}
+                                title="تایید آگهی"
                               >
                                 <Check className="w-3 h-3" />
                               </Button>

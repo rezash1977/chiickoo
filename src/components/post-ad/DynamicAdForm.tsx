@@ -370,11 +370,11 @@ const DynamicAdForm: React.FC<DynamicAdFormProps> = ({
         processedValue = toEnglishDigits(newValue);
       }
 
-      // ادغام با بقیه فیلدها برای جلوگیری از پاک شدن بقیه اطلاعات
-      updateFormData({
-        ...formData,
+      // استفاده از آپدیت تابعی برای جلوگیری از تداخل در استیت و پاک شدن سایر فیلدها
+      updateFormData((prev: any) => ({
+        ...prev,
         [field.name]: processedValue
-      });
+      }));
     };
 
     switch (field.type) {
@@ -492,7 +492,10 @@ const DynamicAdForm: React.FC<DynamicAdFormProps> = ({
                     const newValues = checked
                       ? [...selectedValues, option.value]
                       : selectedValues.filter((v: string) => v !== option.value);
-                    updateFormData({ [field.name]: newValues });
+                    updateFormData((prev: any) => ({
+                      ...prev,
+                      [field.name]: newValues
+                    }));
                   }}
                 />
                 <Label htmlFor={`${field.name}-${option.value}`} className="text-sm cursor-pointer">
@@ -532,7 +535,7 @@ const DynamicAdForm: React.FC<DynamicAdFormProps> = ({
               {categories.map((cat) => (
                 <div
                   key={cat.id}
-                  onClick={() => updateFormData({ category: cat.slug })}
+                  onClick={() => updateFormData((prev: any) => ({ ...prev, category: cat.slug }))}
                   className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md ${(category || formData.category) === cat.slug
                     ? 'border-primary bg-primary/5'
                     : 'border-gray-200 hover:border-primary/50'

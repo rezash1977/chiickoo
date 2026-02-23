@@ -18,6 +18,7 @@ import MyAdsPage from "./pages/MyAdsPage";
 import FavoritesPage from "./pages/FavoritesPage";
 import SearchPage from "./pages/SearchPage";
 import ChatPage from "./pages/ChatPage";
+import EditAdPage from "./pages/EditAdPage";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 // Create a QueryClient outside of the component to ensure it doesn't get recreated on every render
@@ -48,6 +49,7 @@ const App = () => {
               <Route path="/my-ads" element={<MyAdsPage />} />
               <Route path="/favorites" element={<FavoritesPage />} />
               <Route path="/chat" element={<ChatPage />} />
+              <Route path="/edit-ad/:adId" element={<EditAdPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
