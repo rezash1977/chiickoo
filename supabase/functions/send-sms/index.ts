@@ -71,7 +71,7 @@ const message = `رمز ورود به چی کو: ${otp}\nchiickoo.ir`;
       DOMAIN,
     });
 
-    const apiUrl = `https://0098sms.com/sendsmslink.aspx?${params.toString()}`;
+    const apiUrl = `https://0098vip.com/sendsmslink.aspx?${params.toString()}`;
 
     console.error("[HOOK] Sending request to 0098sms...");
 
