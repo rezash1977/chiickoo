@@ -22,7 +22,10 @@ import {
   Edit,
   UserCheck,
   UserX,
-  MessageSquare
+  MessageSquare,
+  Menu,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import { Link } from 'react-router-dom';
@@ -67,6 +70,9 @@ const AdminDashboard: React.FC = () => {
   const [userFilter, setUserFilter] = useState<string>('all');
   const [messages, setMessages] = useState<any[]>([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('ads');
+  const [adminMenuOpen, setAdminMenuOpen] = useState(false);
+  const [expandedConversation, setExpandedConversation] = useState<string | null>(null);
 
   // Archive queries
   const { data: adsNeedingArchive, isLoading: archiveLoading, refetch: refetchArchive } = useQuery({
@@ -121,8 +127,7 @@ const AdminDashboard: React.FC = () => {
       const { data, error } = await supabase
         .from('messages')
         .select('*')
-        .order('created_at', { ascending: false })
-        .limit(50);
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching messages:', error);
@@ -338,6 +343,38 @@ const AdminDashboard: React.FC = () => {
     return true;
   });
 
+  const conversationMap = new Map<string, { key: string; adId: string; user1: string; user2: string; messages: any[] }>();
+  messages.forEach(message => {
+    const [user1, user2] = [message.sender_id, message.receiver_id].sort();
+    const key = `${message.ad_id}-${user1}-${user2}`;
+    const conversation = conversationMap.get(key);
+
+    if (conversation) {
+      conversation.messages.push(message);
+    } else {
+      conversationMap.set(key, {
+        key,
+        adId: message.ad_id,
+        user1,
+        user2,
+        messages: [message],
+      });
+    }
+  });
+
+  const groupedConversations = Array.from(conversationMap.values()).sort(
+    (conversationA, conversationB) =>
+      new Date(conversationB.messages[0].created_at).getTime() -
+      new Date(conversationA.messages[0].created_at).getTime()
+  );
+
+  const getUserLabel = (userId: string) => {
+    const profile = users.find(profileItem => profileItem.id === userId);
+    return profile?.full_name || profile?.phone || userId;
+  };
+
+  const getAdLabel = (adId: string) => ads.find(ad => ad.id === adId)?.title || adId;
+
   if (!user) {
     return (
       <Layout>
@@ -355,15 +392,50 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <Layout>
-      <div className="bg-primary text-white">
-        <div className="container mx-auto px-4 py-6 text-right">
+      <div className="bg-primary text-white" dir="rtl">
+        <div className="container mx-auto px-4 py-6 text-right relative">
           <h1 className="text-2xl font-bold">پنل مدیریت</h1>
+          <div className="md:hidden absolute left-4 top-1/2 -translate-y-1/2">
+            <button
+              type="button"
+              className="p-2 rounded-lg bg-teal-700 text-white shadow-md hover:bg-teal-800 transition-colors"
+              onClick={() => setAdminMenuOpen(!adminMenuOpen)}
+              aria-label="منوی مدیریت"
+              aria-expanded={adminMenuOpen}
+            >
+              {adminMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+            {adminMenuOpen && (
+              <div dir="rtl" className="absolute left-0 top-full mt-2 w-56 rounded-lg bg-white p-2 text-right shadow-xl ring-1 ring-black/10 z-50">
+                {[
+                  { value: 'ads', label: 'مدیریت آگهی‌ها', icon: FileText },
+                  { value: 'archive', label: 'مدیریت آرشیو', icon: Archive },
+                  { value: 'users', label: 'مدیریت کاربران', icon: Users },
+                  { value: 'chats', label: 'مدیریت چت‌ها', icon: MessageSquare },
+                ].map(({ value, label, icon: Icon }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    dir="rtl"
+                    className="flex w-full items-center justify-start gap-2 rounded-md px-3 py-2.5 text-right text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-700"
+                    onClick={() => {
+                      setActiveTab(value);
+                      setAdminMenuOpen(false);
+                    }}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6 space-y-6 text-right">
+      <div className="container mx-auto px-4 py-6 space-y-6 text-right" dir="rtl">
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="hidden md:grid md:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="pb-2 text-right">
               <CardTitle className="text-sm font-medium">کل آگهی‌ها</CardTitle>
@@ -422,29 +494,29 @@ const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Main Content Tabs */}
-        <Tabs defaultValue="ads" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4 text-right">
-            <TabsTrigger value="ads" className="flex items-center gap-2 justify-center">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList dir="rtl" className="hidden md:grid md:grid-cols-4 text-right">
+            <TabsTrigger dir="rtl" value="ads" className="flex items-center justify-start gap-2 text-right">
               <FileText className="w-4 h-4" />
               مدیریت آگهی‌ها
             </TabsTrigger>
-            <TabsTrigger value="archive" className="flex items-center gap-2 justify-center">
+            <TabsTrigger dir="rtl" value="archive" className="flex items-center justify-start gap-2 text-right">
               <Archive className="w-4 h-4" />
               مدیریت آرشیو
             </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2 justify-center">
+            <TabsTrigger dir="rtl" value="users" className="flex items-center justify-start gap-2 text-right">
               <Users className="w-4 h-4" />
               مدیریت کاربران
             </TabsTrigger>
-            <TabsTrigger value="chats" className="flex items-center gap-2 justify-center">
+            <TabsTrigger dir="rtl" value="chats" className="flex items-center justify-start gap-2 text-right">
               <MessageSquare className="w-4 h-4" />
               مدیریت چت‌ها
             </TabsTrigger>
           </TabsList>
 
           {/* Ads Management Tab */}
-          <TabsContent value="ads" className="space-y-4">
-            <Card>
+          <TabsContent value="ads" dir="rtl" className="space-y-4">
+            <Card dir="rtl">
               <CardHeader>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-right">
                   <CardTitle>مدیریت آگهی‌ها</CardTitle>
@@ -484,7 +556,7 @@ const AdminDashboard: React.FC = () => {
                     <span className="mr-2">در حال بارگذاری...</span>
                   </div>
                 ) : (
-                  <Table>
+                  <Table className="text-right [&_th]:text-right">
                     <TableHeader>
                       <TableRow className="text-right">
                         <TableHead>عنوان</TableHead>
@@ -558,8 +630,8 @@ const AdminDashboard: React.FC = () => {
           </TabsContent>
 
           {/* Archive Management Tab */}
-          <TabsContent value="archive" className="space-y-4">
-            <Card>
+          <TabsContent value="archive" dir="rtl" className="space-y-4">
+            <Card dir="rtl">
               <CardHeader>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-right">
                   <div>
@@ -614,7 +686,7 @@ const AdminDashboard: React.FC = () => {
                       </AlertDescription>
                     </Alert>
 
-                    <Table>
+                    <Table className="text-right [&_th]:text-right">
                       <TableHeader>
                         <TableRow className="text-right">
                           <TableHead>عنوان آگهی</TableHead>
@@ -669,8 +741,8 @@ const AdminDashboard: React.FC = () => {
           </TabsContent>
 
           {/* Users Management Tab */}
-          <TabsContent value="users" className="space-y-4">
-            <Card>
+          <TabsContent value="users" dir="rtl" className="space-y-4">
+            <Card dir="rtl">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-right">
                   <Users className="w-5 h-5" />
@@ -678,14 +750,14 @@ const AdminDashboard: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <Table>
+                <Table className="text-right [&_th]:text-right">
                   <TableHeader>
                     <TableRow className="text-right">
-                      <TableHead>نام</TableHead>
-                      <TableHead>تلفن</TableHead>
-                      <TableHead>شهر</TableHead>
-                      <TableHead>تاریخ عضویت</TableHead>
-                      <TableHead>عملیات</TableHead>
+                      <TableHead className="text-right">نام</TableHead>
+                      <TableHead className="text-right">تلفن</TableHead>
+                      <TableHead className="text-right">شهر</TableHead>
+                      <TableHead className="text-right">تاریخ عضویت</TableHead>
+                      <TableHead className="text-right">عملیات</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -719,8 +791,8 @@ const AdminDashboard: React.FC = () => {
           </TabsContent>
 
           {/* Chat Management Tab */}
-          <TabsContent value="chats" className="space-y-4">
-            <Card>
+          <TabsContent value="chats" dir="rtl" className="space-y-4">
+            <Card dir="rtl">
               <CardHeader>
                 <div className="flex justify-between items-center text-right">
                   <CardTitle className="flex items-center gap-2">
@@ -742,67 +814,75 @@ const AdminDashboard: React.FC = () => {
                     <p className="text-gray-500">هنوز پیامی در سیستم ثبت نشده است.</p>
                   </div>
                 ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="text-right">
-                        <TableHead>فرستنده</TableHead>
-                        <TableHead>گیرنده</TableHead>
-                        <TableHead>آگهی</TableHead>
-                        <TableHead>پیام</TableHead>
-                        <TableHead>وضعیت</TableHead>
-                        <TableHead>تاریخ</TableHead>
-                        <TableHead>عملیات</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {messages.map((message) => (
-                        <TableRow key={message.id} className="text-right">
-                          <TableCell className="font-medium">
-                            {message.sender_id}
-                          </TableCell>
-                          <TableCell>
-                            {message.receiver_id}
-                          </TableCell>
-                          <TableCell>
-                            {message.ad_id}
-                          </TableCell>
-                          <TableCell className="max-w-xs">
-                            <div className="truncate">
-                              {message.content.length > 50
-                                ? `${message.content.substring(0, 50)}...`
-                                : message.content}
+                  <div className="space-y-3">
+                    {groupedConversations.map(conversation => {
+                      const isExpanded = expandedConversation === conversation.key;
+                      const conversationMessages = [...conversation.messages].sort(
+                        (messageA, messageB) =>
+                          new Date(messageA.created_at).getTime() - new Date(messageB.created_at).getTime()
+                      );
+
+                      return (
+                        <div key={conversation.key} className="overflow-hidden rounded-lg border text-right">
+                          <button
+                            type="button"
+                            className="flex w-full items-center justify-between gap-4 bg-white p-4 text-right hover:bg-teal-50"
+                            onClick={() => setExpandedConversation(isExpanded ? null : conversation.key)}
+                          >
+                            <div className="min-w-0">
+                              <p className="font-semibold text-gray-900">{getAdLabel(conversation.adId)}</p>
+                              <p className="mt-1 text-sm text-gray-500">
+                                {getUserLabel(conversation.user1)} و {getUserLabel(conversation.user2)}
+                              </p>
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={message.is_read ? "default" : "secondary"}>
-                              {message.is_read ? "خوانده شده" : "خوانده نشده"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {new Date(message.created_at).toLocaleDateString('fa-IR')}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2 justify-end">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => window.open(`/ad/${message.ad_id}`, '_blank')}
-                              >
-                                <Eye className="w-3 h-3" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => handleDeleteMessage(message.id)}
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </Button>
+                            <div className="flex shrink-0 items-center gap-2 text-sm text-gray-500">
+                              <span>{conversation.messages.length} پیام</span>
+                              {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                             </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                          </button>
+
+                          {isExpanded && (
+                            <div className="space-y-3 border-t bg-gray-50 p-4">
+                              <div className="flex items-center justify-between gap-3">
+                                <p className="text-sm text-gray-500">
+                                  مکالمه درباره آگهی: {getAdLabel(conversation.adId)}
+                                </p>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => window.open(`/ad/${conversation.adId}`, '_blank')}
+                                >
+                                  <Eye className="ml-2 h-3 w-3" />
+                                  مشاهده آگهی
+                                </Button>
+                              </div>
+                              {conversationMessages.map(message => (
+                                <div key={message.id} className="rounded-md border bg-white p-3">
+                                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500">
+                                    <span className="font-medium text-gray-700">{getUserLabel(message.sender_id)}</span>
+                                    <span>{new Date(message.created_at).toLocaleString('fa-IR')}</span>
+                                  </div>
+                                  <p className="mt-2 whitespace-pre-wrap text-sm text-gray-900">{message.content}</p>
+                                  <div className="mt-3 flex items-center justify-between gap-2">
+                                    <Badge variant={message.is_read ? 'default' : 'secondary'}>
+                                      {message.is_read ? 'خوانده شده' : 'خوانده نشده'}
+                                    </Badge>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() => handleDeleteMessage(message.id)}
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
               </CardContent>
             </Card>

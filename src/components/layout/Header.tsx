@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import SearchBar from '../search/SearchBar';
 import { User, Plus, Settings, LogOut, Heart, Menu, X, ChevronDown } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,6 +12,7 @@ import { NotificationCenter } from '../notifications/NotificationCenter';
 
 const Header: React.FC = () => {
   const { user, signOut } = useAuth();
+  const location = useLocation();
   const { toast } = useToast();
   const [isAdmin, setIsAdmin] = React.useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -19,6 +20,7 @@ const Header: React.FC = () => {
   const unreadCount = useUnreadMessagesCount(user?.id);
   const { favorites } = useFavorites();
   const { data: categories, isLoading: categoriesLoading } = useCategories();
+  const isAdminPage = location.pathname === '/admin';
 
   React.useEffect(() => {
     const checkAdminRole = async () => {
@@ -42,6 +44,8 @@ const Header: React.FC = () => {
   }, [user]);
 
   const handleSignOut = async () => {
+    if (!window.confirm('آیا مطمئن هستید که می‌خواهید خارج شوید؟')) return;
+
     try {
       await signOut();
       toast({
@@ -171,18 +175,20 @@ const Header: React.FC = () => {
           </div>
 
           {/* همبرگر منو - فقط موبایل */}
-          <button
-            className="md:hidden flex-shrink-0 p-1.5 rounded-lg hover:bg-gray-100 text-teal-500"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="منو"
-          >
-            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
+          {!isAdminPage && (
+            <button
+              className="md:hidden flex-shrink-0 p-1.5 rounded-lg hover:bg-gray-100 text-teal-500"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="منو"
+            >
+              {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
+          )}
         </div>
       </div>
 
       {/* منوی موبایل - کشویی */}
-      {mobileMenuOpen && (
+      {mobileMenuOpen && !isAdminPage && (
         <div
           className="md:hidden bg-white border-t border-gray-100 px-4 py-3 space-y-2 shadow-lg"
           onClick={() => setMobileMenuOpen(false)}

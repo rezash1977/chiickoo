@@ -1,18 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { User, Plus, Settings, LogOut, Heart, MessageSquare, Home } from 'lucide-react';
+import { User, Plus, Settings, LogOut, MessageSquare, Home } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnreadMessagesCount } from '@/hooks/useUnreadMessagesCount';
-import { useFavorites } from '@/hooks/useFavorites';
 
 const Navbar: React.FC = () => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   const [isAdmin, setIsAdmin] = useState(false);
   const unreadCount = useUnreadMessagesCount(user?.id);
-  const { favorites } = useFavorites();
 
   useEffect(() => {
     const checkAdminRole = async () => {
@@ -38,6 +36,8 @@ const Navbar: React.FC = () => {
   }, [user]);
 
   const handleSignOut = async () => {
+    if (!window.confirm('آیا مطمئن هستید که می‌خواهید خارج شوید؟')) return;
+
     try {
       await signOut();
       toast({
@@ -90,17 +90,6 @@ const Navbar: React.FC = () => {
                 </span>
               )}
               <span className="text-[10px] mt-0.5 font-medium">حساب من</span>
-            </Link>
-
-            {/* نشان‌ها */}
-            <Link to="/favorites" className="flex flex-col items-center relative text-red-500 hover:text-red-600 flex-1">
-              <Heart size={22} />
-              {favorites.length > 0 && (
-                <span className="absolute top-0 right-2 bg-red-500 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center">
-                  {favorites.length > 9 ? '9+' : favorites.length}
-                </span>
-              )}
-              <span className="text-[10px] mt-0.5 font-medium">نشان‌ها</span>
             </Link>
 
             {/* چت */}

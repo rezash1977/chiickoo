@@ -114,6 +114,20 @@ const LoginPage: React.FC = () => {
       }
 
       if (authData.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert(
+            {
+              id: authData.user.id,
+              phone: authData.user.phone ?? formattedPhone,
+            },
+            { onConflict: 'id' }
+          );
+
+        if (profileError) {
+          console.error('Profile phone sync error:', profileError);
+        }
+
         // Check admin role
         const { data: roleData, error: roleError } = await supabase
           .from('user_roles')
