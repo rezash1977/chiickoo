@@ -18,8 +18,15 @@ const toEnglishDigits = (str: string) => {
     .replace(/[٠-٩]/g, (d) => "٠١٢٣٤٥٦٧٨٩".indexOf(d).toString());
 };
 
+const formatPhoneNumber = (phone: string) => {
+  const cleanPhone = toEnglishDigits(phone).replace(/[\s()-]/g, "");
+  if (cleanPhone.startsWith("+")) return cleanPhone;
+  if (cleanPhone.startsWith("00")) return `+${cleanPhone.slice(2)}`;
+  return cleanPhone.replace(/^0/, "+98");
+};
+
 const phoneSchema = z.object({
-  phone: z.string().regex(/^09\d{9}$/, { message: "شماره موبایل باید ۱۱ رقم و با ۰۹ شروع شود" }),
+  phone: z.string().regex(/^(09\d{9}|\+[1-9]\d{7,14})$/, { message: "شماره موبایل را با ۰۹ یا با + و کد کشور وارد کنید" }),
 });
 
 const LoginPage: React.FC = () => {
@@ -57,8 +64,7 @@ const LoginPage: React.FC = () => {
   const onPhoneSubmit = async (data: z.infer<typeof phoneSchema>) => {
     setIsLoading(true);
     try {
-      const cleanPhone = toEnglishDigits(data.phone);
-      const formattedPhone = cleanPhone.replace(/^0/, '+98');
+      const formattedPhone = formatPhoneNumber(data.phone);
       console.log("Sending OTP to:", formattedPhone);
 
       const { error } = await supabase.auth.signInWithOtp({
@@ -72,7 +78,7 @@ const LoginPage: React.FC = () => {
         return;
       }
 
-      setPhone(data.phone);
+      setPhone(formattedPhone);
       setOtpValue("");
       setOtpError("");
       setStep('OTP');
@@ -87,23 +93,23 @@ const LoginPage: React.FC = () => {
   };
 
   // ─── Step 2: verify OTP ───────────────────────────────────────────────────
-  const onOtpSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onOtpSubmit = async (e?: React.FormEvent, submittedOtp = otpValue) => {
+    e?.preventDefault();
     setOtpError("");
 
-    if (otpValue.length !== 6) {
+    if (submittedOtp.length !== 6) {
       setOtpError("کد تایید باید ۶ رقم باشد");
       return;
     }
 
     setIsLoading(true);
     try {
-      const formattedPhone = phone.replace(/^0/, '+98');
-      console.log("Verifying OTP:", otpValue, "for", formattedPhone);
+      const formattedPhone = formatPhoneNumber(phone);
+      console.log("Verifying OTP:", submittedOtp, "for", formattedPhone);
 
       const { data: authData, error } = await supabase.auth.verifyOtp({
         phone: formattedPhone,
-        token: otpValue,
+        token: submittedOtp,
         type: 'sms',
       });
 
@@ -157,7 +163,7 @@ const LoginPage: React.FC = () => {
     if (timer > 0) return;
     setIsLoading(true);
     try {
-      const formattedPhone = phone.replace(/^0/, '+98');
+      const formattedPhone = formatPhoneNumber(phone);
       const { error } = await supabase.auth.signInWithOtp({
         phone: formattedPhone,
         options: { channel: 'sms' },
@@ -206,10 +212,10 @@ const LoginPage: React.FC = () => {
                       </FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="09123456789"
+                          placeholder="+989123456789 یا 09123456789"
                           className="text-left ltr placeholder:text-right"
                           type="tel"
-                          inputMode="numeric"
+                          inputMode="tel"
                           {...field}
                           onChange={(e) => field.onChange(toEnglishDigits(e.target.value))}
                           disabled={isLoading}
@@ -242,6 +248,9 @@ const LoginPage: React.FC = () => {
                     console.log("OTP changed:", cleaned);
                     setOtpValue(cleaned);
                     setOtpError("");
+                    if (cleaned.length === 6 && !isLoading) {
+                      void onOtpSubmit(undefined, cleaned);
+                    }
                   }}
                   disabled={isLoading}
                   inputMode="numeric"
