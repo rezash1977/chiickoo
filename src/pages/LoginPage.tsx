@@ -176,10 +176,10 @@ const LoginPage: React.FC = () => {
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-xl border-0">
         <CardHeader className="space-y-2 text-center">
-          <CardTitle className="text-3xl font-bold text-violet-600">
+          <CardTitle className="text-3xl font-bold text-teal-600">
             {step === 'PHONE' ? 'ورود به چی کو' : 'تایید شماره موبایل'}
           </CardTitle>
           <CardDescription className="text-gray-500">
@@ -201,7 +201,7 @@ const LoginPage: React.FC = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-gray-700 font-medium flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-fuchsia-600" />
+                        <Phone className="h-4 w-4 text-cyan-600" />
                         شماره موبایل
                       </FormLabel>
                       <FormControl>
@@ -221,7 +221,7 @@ const LoginPage: React.FC = () => {
                 />
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-lg py-6"
+                  className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-lg py-6"
                   disabled={isLoading}
                 >
                   {isLoading ? "در حال ارسال..." : "دریافت کد تایید"}
@@ -265,7 +265,7 @@ const LoginPage: React.FC = () => {
               <div className="flex flex-col space-y-3">
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-lg py-6"
+                  className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-lg py-6"
                   disabled={isLoading || otpValue.length !== 6}
                 >
                   {isLoading ? "در حال بررسی..." : "تایید و ورود"}
@@ -275,7 +275,7 @@ const LoginPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => { setStep('PHONE'); setOtpValue(""); setOtpError(""); }}
-                    className="text-gray-500 hover:text-violet-600 flex items-center gap-1"
+                    className="text-gray-500 hover:text-teal-600 flex items-center gap-1"
                     disabled={isLoading}
                   >
                     <ArrowRight className="h-4 w-4" />
@@ -286,7 +286,7 @@ const LoginPage: React.FC = () => {
                     type="button"
                     onClick={handleResendCode}
                     disabled={timer > 0 || isLoading}
-                    className={`font-medium ${timer > 0 ? 'text-gray-400 cursor-not-allowed' : 'text-violet-600 hover:text-violet-500'}`}
+                    className={`font-medium ${timer > 0 ? 'text-gray-400 cursor-not-allowed' : 'text-teal-600 hover:text-teal-500'}`}
                   >
                     {timer > 0 ? `ارسال مجدد (${timer})` : "ارسال مجدد کد"}
                   </button>
@@ -298,7 +298,7 @@ const LoginPage: React.FC = () => {
 
         <CardFooter className="flex justify-center border-t pt-6">
           <p className="text-gray-500 text-sm">
-            ورود شما به معنای پذیرش <a href="#" className="text-violet-600">قوانین و مقررات</a> چی کو است
+            ورود شما به معنای پذیرش <a href="#" className="text-teal-600">قوانین و مقررات</a> چی کو است
           </p>
         </CardFooter>
       </Card>
